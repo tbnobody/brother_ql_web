@@ -114,7 +114,9 @@ def get_label_context(request):
 
 def create_label_im(text, **kwargs):
     if kwargs['print_type'] == 'qrcode':
-        return create_qrcode_label_im(text, **kwargs)
+        return create_qrcode_label_im(text, False, **kwargs)
+    elif kwargs['print_type'] == 'qrcode_text':
+        return create_qrcode_label_im(text, True, **kwargs)
     else:
         return create_text_label_im(text, **kwargs)
 
@@ -159,12 +161,12 @@ def create_text_label_im(text, **kwargs):
     draw.multiline_text(offset, text, kwargs['fill_color'], font=im_font, align=kwargs['align'])
     return im
 
-def create_qrcode_label_im(text, **kwargs):
+def create_qrcode_label_im(text, include_text, **kwargs):
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
         box_size=kwargs['qrcode_size'],
-        border=1,
+        border=0,
     )
     qr.add_data(text)
     qr.make(fit=True)
@@ -174,36 +176,62 @@ def create_qrcode_label_im(text, **kwargs):
     qr_height, qr_width = qr_img.size
 
     label_type = kwargs['kind']
+
+    if include_text:
+        im_font = ImageFont.truetype(kwargs['font_path'], kwargs['font_size'])
+        im = Image.new('L', (20, 20), 'white')
+        draw = ImageDraw.Draw(im)
+        # workaround for a bug in multiline_textsize()
+        # when there are empty lines in the text:
+        lines = []
+        for line in text.split('\n'):
+            if line == '': line = ' '
+            lines.append(line)
+        text = '\n'.join(lines)
+        textsize = draw.multiline_textsize(text, font=im_font)
+    else:
+        textsize = (0, 0)
+
     width, height = kwargs['width'], kwargs['height']
     if kwargs['orientation'] == 'standard':
         if label_type in (ENDLESS_LABEL,):
-            height = qr_height + kwargs['margin_top'] + kwargs['margin_bottom']
+            height = qr_height + textsize[1] + kwargs['margin_top'] + kwargs['margin_bottom']
     elif kwargs['orientation'] == 'rotated':
         if label_type in (ENDLESS_LABEL,):
-            width = qr_width + kwargs['margin_left'] + kwargs['margin_right']
-    im = Image.new('RGB', (width, height), 'white')
+            width = qr_width + textsize[0] + kwargs['margin_left'] + kwargs['margin_right']
+
     if kwargs['orientation'] == 'standard':
         if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL):
-            vertical_offset  = (height - qr_height)//2
+            vertical_offset  = (height - qr_height - textsize[1])//2
             vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
         else:
             vertical_offset = kwargs['margin_top']
-        horizontal_offset = max((width - qr_width)//2, 0)
+
+        vertical_offset += qr_height
+        horizontal_offset = max((width - textsize[0])//2, 0)
+        horizontal_offset_qrcode = (width - qr_width)//2
+        vertical_offset_qrcode = kwargs['margin_top']
+
     elif kwargs['orientation'] == 'rotated':
-        vertical_offset  = (height - qr_height)//2
+        vertical_offset  = (height - textsize[1])//2
         vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
         if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL):
-            horizontal_offset = max((width - qr_width)//2, 0)
+            horizontal_offset = max((width - qr_width - textsize[0])//2, 0)
         else:
             horizontal_offset = kwargs['margin_left']
-
-    if kwargs['align'] == 'left':
-        horizontal_offset = 0
-    elif kwargs['align'] == 'right':
-        horizontal_offset = width - qr_width
+        horizontal_offset += qr_width
+        horizontal_offset_qrcode = kwargs['margin_left']
+        vertical_offset_qrcode = (height - qr_height)//2
 
     offset = horizontal_offset, vertical_offset
-    im.paste(qr_img, offset)
+    qr_offset = horizontal_offset_qrcode, vertical_offset_qrcode
+
+    im = Image.new('RGB', (width, height), 'white')
+    im.paste(qr_img, qr_offset)
+    if include_text:
+        draw = ImageDraw.Draw(im)
+        draw.multiline_text(offset, text, kwargs['fill_color'], font=im_font, align=kwargs['align'])
+
     return im
 
 @get('/api/preview/text')
