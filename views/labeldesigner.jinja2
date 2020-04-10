@@ -75,6 +75,22 @@
           <div class="panel panel-default">
             <div class="panel-heading">
               <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordion" href="#collapse4">
+                  <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                  QR Code Settings
+                </a>
+              </h4>
+            </div>
+            <div id="collapse4" class="panel-collapse collapse">
+              <div class="chooser panel-body">
+              <label for="fontSize" >QR Code Size:</label>
+              <input id="qrCodeSize" class="form-control" type="number" min="1" value="{{default_qr_size}}" onChange="preview()" required>
+              </div> <!-- class="chooser panel-body" -->
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title">
                 <a data-toggle="collapse" data-parent="#accordion" href="#collapse3">
                   <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
                   Detailed Settings
@@ -83,6 +99,11 @@
             </div>
             <div id="collapse3" class="panel-collapse collapse">
               <div class="chooser panel-body">
+              <label for="fontFamily">Print Type:</label>
+              <select class="form-control" id="printType" onChange="preview()">
+                    <option value="text">Text</option>
+                    <option value="qrcode">QR Code</option>
+              </select>
               <label for="marginTop">Margin Top:</label>
               <div class="input-group marginsTopBottom">
                 <input id="marginTop" class="form-control" type="number" min="0" max="200" value="24" onChange="preview()" required>    <span class="input-group-addon">%</span>
@@ -149,7 +170,9 @@ function formData() {
     margin_top:    $('#marginTop').val(),
     margin_bottom: $('#marginBottom').val(),
     margin_left:   $('#marginLeft').val(),
-    margin_right:  $('#marginRight').val()
+    margin_right:  $('#marginRight').val(),
+    print_type:    $('#printType').val(),
+    qrcode_size:   $('#qrCodeSize').val(),
   }
 }
 

@@ -5,7 +5,7 @@
 This is a web service to print labels on Brother QL label printers.
 """
 
-import sys, logging, random, json, argparse
+import sys, logging, random, json, argparse, qrcode
 from io import BytesIO
 
 from bottle import run, route, get, post, response, request, jinja2_view as view, static_file, redirect
@@ -51,7 +51,8 @@ def labeldesigner():
             'label_sizes': LABEL_SIZES,
             'website': CONFIG['WEBSITE'],
             'label': CONFIG['LABEL'],
-            'default_orientation': CONFIG['LABEL']['DEFAULT_ORIENTATION']}
+            'default_orientation': CONFIG['LABEL']['DEFAULT_ORIENTATION'],
+            'default_qr_size': CONFIG['LABEL']['DEFAULT_QR_SIZE']}
 
 def get_label_context(request):
     """ might raise LookupError() """
@@ -75,6 +76,8 @@ def get_label_context(request):
       'margin_bottom': float(d.get('margin_bottom', 45))/100.,
       'margin_left':   float(d.get('margin_left',   35))/100.,
       'margin_right':  float(d.get('margin_right',  35))/100.,
+      'print_type':    d.get('print_type', 'text'),
+      'qrcode_size':   int(d.get('qrcode_size', 10)),
     }
     context['margin_top']    = int(context['font_size']*context['margin_top'])
     context['margin_bottom'] = int(context['font_size']*context['margin_bottom'])
@@ -110,6 +113,12 @@ def get_label_context(request):
     return context
 
 def create_label_im(text, **kwargs):
+    if kwargs['print_type'] == 'qrcode':
+        return create_qrcode_label_im(text, **kwargs)
+    else:
+        return create_text_label_im(text, **kwargs)
+
+def create_text_label_im(text, **kwargs):
     label_type = kwargs['kind']
     im_font = ImageFont.truetype(kwargs['font_path'], kwargs['font_size'])
     im = Image.new('L', (20, 20), 'white')
@@ -148,6 +157,53 @@ def create_label_im(text, **kwargs):
             horizontal_offset = kwargs['margin_left']
     offset = horizontal_offset, vertical_offset
     draw.multiline_text(offset, text, kwargs['fill_color'], font=im_font, align=kwargs['align'])
+    return im
+
+def create_qrcode_label_im(text, **kwargs):
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=kwargs['qrcode_size'],
+        border=1,
+    )
+    qr.add_data(text)
+    qr.make(fit=True)
+    qr_img = qr.make_image(
+        fill_color='red' if (255, 0, 0) == kwargs['fill_color'] else 'black', 
+        back_color="white")
+    qr_height, qr_width = qr_img.size
+
+    label_type = kwargs['kind']
+    width, height = kwargs['width'], kwargs['height']
+    if kwargs['orientation'] == 'standard':
+        if label_type in (ENDLESS_LABEL,):
+            height = qr_height + kwargs['margin_top'] + kwargs['margin_bottom']
+    elif kwargs['orientation'] == 'rotated':
+        if label_type in (ENDLESS_LABEL,):
+            width = qr_width + kwargs['margin_left'] + kwargs['margin_right']
+    im = Image.new('RGB', (width, height), 'white')
+    if kwargs['orientation'] == 'standard':
+        if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL):
+            vertical_offset  = (height - qr_height)//2
+            vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
+        else:
+            vertical_offset = kwargs['margin_top']
+        horizontal_offset = max((width - qr_width)//2, 0)
+    elif kwargs['orientation'] == 'rotated':
+        vertical_offset  = (height - qr_height)//2
+        vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
+        if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL):
+            horizontal_offset = max((width - qr_width)//2, 0)
+        else:
+            horizontal_offset = kwargs['margin_left']
+
+    if kwargs['align'] == 'left':
+        horizontal_offset = 0
+    elif kwargs['align'] == 'right':
+        horizontal_offset = width - qr_width
+
+    offset = horizontal_offset, vertical_offset
+    im.paste(qr_img, offset)
     return im
 
 @get('/api/preview/text')
