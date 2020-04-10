@@ -46,7 +46,8 @@ def labeldesigner():
             'fonts': FONTS,
             'label_sizes': LABEL_SIZES,
             'website': CONFIG['WEBSITE'],
-            'label': CONFIG['LABEL']}
+            'label': CONFIG['LABEL'],
+            'default_orientation': CONFIG['LABEL']['DEFAULT_ORIENTATION']}
 
 def get_label_context(request):
     """ might raise LookupError() """
