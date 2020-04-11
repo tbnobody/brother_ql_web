@@ -1,19 +1,19 @@
 #statusBox.alert {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
 
-.alert .glyphicon{
-  display:table-cell;
+.alert .glyphicon {
+    display: table-cell;
 }
 
 .alert div,
-.alert span{
-  padding-left: 10px;
-  display:table-cell;
+.alert span {
+    padding-left: 10px;
+    display: table-cell;
 }
 
 textarea#labelText {
-  resize: none;
+    resize: none;
 }
 
 .roundPreviewImage {

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <!-- Required meta tags always come first -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -10,26 +11,27 @@
     <link rel="stylesheet" href="/static/css/bootstrap.min.css">
     <link rel="stylesheet" href="/static/css/custom.css">
 
-    <title>{{ website['HTML_TITLE'] }} | Brother QL</title>
-  </head>
-  <body>
+    <title>{{website['HTML_TITLE']}} | Brother QL</title>
+</head>
+
+<body>
     <nav class="navbar navbar-inverse navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="/">{{ website['PAGE_TITLE'] }}</a>
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">{{website['PAGE_TITLE']}}</a>
+            </div>
         </div>
-      </div>
     </nav>
     <div class="jumbotron">
-          <div class="container">
+        <div class="container">
             {% block jumbotron %}{% endblock %}
-          </div>
+        </div>
     </div>
     <div class="container">{% block content %}{% endblock %}</div>
 
@@ -37,8 +39,8 @@
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
     <script type="text/javascript">
-      {% block javascript %}{% endblock %}
+        {% block javascript %} {% endblock %}
     </script>
-  </body>
-</html>
+</body>
 
+</html>

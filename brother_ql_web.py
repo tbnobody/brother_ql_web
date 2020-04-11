@@ -5,7 +5,12 @@
 This is a web service to print labels on Brother QL label printers.
 """
 
-import sys, logging, random, json, argparse, qrcode
+import sys
+import logging
+import random
+import json
+import argparse
+import qrcode
 from io import BytesIO
 
 from bottle import run, route, get, post, response, request, jinja2_view as view, static_file, redirect
@@ -20,11 +25,12 @@ from font_helpers import get_fonts
 
 logger = logging.getLogger(__name__)
 
-LABEL_SIZES = [ (
-        name,
-        label_type_specs[name]['name'], 
-        (label_type_specs[name]['kind'] in (ROUND_DIE_CUT_LABEL,)) # True if round label
-    ) for name in label_sizes]
+LABEL_SIZES = [(
+    name,
+    label_type_specs[name]['name'],
+    (label_type_specs[name]['kind'] in (
+        ROUND_DIE_CUT_LABEL,))  # True if round label
+) for name in label_sizes]
 
 try:
     with open('config.json', encoding='utf-8') as fh:
@@ -38,9 +44,11 @@ except FileNotFoundError as e:
 def index():
     redirect('/labeldesigner')
 
+
 @route('/static/<filename:path>')
 def serve_static(filename):
     return static_file(filename, root='./static')
+
 
 @route('/labeldesigner')
 @view('labeldesigner.jinja2')
@@ -54,39 +62,40 @@ def labeldesigner():
             'default_orientation': CONFIG['LABEL']['DEFAULT_ORIENTATION'],
             'default_qr_size': CONFIG['LABEL']['DEFAULT_QR_SIZE']}
 
+
 def get_label_context(request):
     """ might raise LookupError() """
 
-    d = request.params.decode() # UTF-8 decoded form data
+    d = request.params.decode()  # UTF-8 decoded form data
 
     font_family = d.get('font_family').rpartition('(')[0].strip()
     font_style  = d.get('font_family').rpartition('(')[2].rstrip(')')
     context = {
-      'text':          d.get('text', None),
-      'font_size': int(d.get('font_size', 100)),
-      'font_family':   font_family,
-      'font_style':    font_style,
-      'label_size':    d.get('label_size', "62"),
-      'kind':          label_type_specs[d.get('label_size', "62")]['kind'],
-      'margin':    int(d.get('margin', 10)),
-      'threshold': int(d.get('threshold', 70)),
-      'align':         d.get('align', 'center'),
-      'orientation':   d.get('orientation', 'standard'),
-      'margin_top':    float(d.get('margin_top',    24))/100.,
-      'margin_bottom': float(d.get('margin_bottom', 45))/100.,
-      'margin_left':   float(d.get('margin_left',   35))/100.,
-      'margin_right':  float(d.get('margin_right',  35))/100.,
-      'print_type':    d.get('print_type', 'text'),
-      'qrcode_size':   int(d.get('qrcode_size', 10)),
-      'print_count':   int(d.get('print_count', 1)),
-      'cut_once':      int(d.get('cut_once', 0)),
+        'text':          d.get('text', None),
+        'font_size': int(d.get('font_size', 100)),
+        'font_family':   font_family,
+        'font_style':    font_style,
+        'label_size':    d.get('label_size', "62"),
+        'kind':          label_type_specs[d.get('label_size', "62")]['kind'],
+        'margin':    int(d.get('margin', 10)),
+        'threshold': int(d.get('threshold', 70)),
+        'align':         d.get('align', 'center'),
+        'orientation':   d.get('orientation', 'standard'),
+        'margin_top':    float(d.get('margin_top',    24))/100.,
+        'margin_bottom': float(d.get('margin_bottom', 45))/100.,
+        'margin_left':   float(d.get('margin_left',   35))/100.,
+        'margin_right':  float(d.get('margin_right',  35))/100.,
+        'print_type':    d.get('print_type', 'text'),
+        'qrcode_size':   int(d.get('qrcode_size', 10)),
+        'print_count':   int(d.get('print_count', 1)),
+        'cut_once':      int(d.get('cut_once', 0)),
     }
     context['margin_top']    = int(context['font_size']*context['margin_top'])
     context['margin_bottom'] = int(context['font_size']*context['margin_bottom'])
     context['margin_left']   = int(context['font_size']*context['margin_left'])
     context['margin_right']  = int(context['font_size']*context['margin_right'])
 
-    context['fill_color']  = (255, 0, 0) if 'red' in context['label_size'] else (0, 0, 0)
+    context['fill_color']    = (255, 0, 0) if 'red' in context['label_size'] else (0, 0, 0)
 
     context['cut_once'] = True if context['cut_once'] == 1 else False
 
@@ -110,11 +119,14 @@ def get_label_context(request):
         return ls['dots_printable']
 
     width, height = get_label_dimensions(context['label_size'])
-    if height > width: width, height = height, width
-    if context['orientation'] == 'rotated': height, width = width, height
+    if height > width:
+        width, height = height, width
+    if context['orientation'] == 'rotated':
+        height, width = width, height
     context['width'], context['height'] = width, height
 
     return context
+
 
 def create_label_im(text, **kwargs):
     if kwargs['print_type'] == 'qrcode':
@@ -123,6 +135,7 @@ def create_label_im(text, **kwargs):
         return create_qrcode_label_im(text, True, **kwargs)
     else:
         return create_text_label_im(text, **kwargs)
+
 
 def create_text_label_im(text, **kwargs):
     label_type = kwargs['kind']
@@ -133,7 +146,8 @@ def create_text_label_im(text, **kwargs):
     # when there are empty lines in the text:
     lines = []
     for line in text.split('\n'):
-        if line == '': line = ' '
+        if line == '':
+            line = ' '
         lines.append(line)
     text = '\n'.join(lines)
     linesize = im_font.getsize(text)
@@ -162,8 +176,14 @@ def create_text_label_im(text, **kwargs):
         else:
             horizontal_offset = kwargs['margin_left']
     offset = horizontal_offset, vertical_offset
-    draw.multiline_text(offset, text, kwargs['fill_color'], font=im_font, align=kwargs['align'])
+    draw.multiline_text(
+        offset,
+        text,
+        kwargs['fill_color'],
+        font=im_font,
+        align=kwargs['align'])
     return im
+
 
 def create_qrcode_label_im(text, include_text, **kwargs):
     qr = qrcode.QRCode(
@@ -175,7 +195,7 @@ def create_qrcode_label_im(text, include_text, **kwargs):
     qr.add_data(text)
     qr.make(fit=True)
     qr_img = qr.make_image(
-        fill_color='red' if (255, 0, 0) == kwargs['fill_color'] else 'black', 
+        fill_color='red' if (255, 0, 0) == kwargs['fill_color'] else 'black',
         back_color="white")
     qr_height, qr_width = qr_img.size
 
@@ -189,7 +209,8 @@ def create_qrcode_label_im(text, include_text, **kwargs):
         # when there are empty lines in the text:
         lines = []
         for line in text.split('\n'):
-            if line == '': line = ' '
+            if line == '':
+                line = ' '
             lines.append(line)
         text = '\n'.join(lines)
         textsize = draw.multiline_textsize(text, font=im_font)
@@ -234,9 +255,15 @@ def create_qrcode_label_im(text, include_text, **kwargs):
     im.paste(qr_img, qr_offset)
     if include_text:
         draw = ImageDraw.Draw(im)
-        draw.multiline_text(offset, text, kwargs['fill_color'], font=im_font, align=kwargs['align'])
+        draw.multiline_text(
+            offset,
+            text,
+            kwargs['fill_color'],
+            font=im_font,
+            align=kwargs['align'])
 
     return im
+
 
 @get('/api/preview/text')
 @post('/api/preview/text')
@@ -252,11 +279,13 @@ def get_preview_image():
         response.set_header('Content-type', 'image/png')
         return image_to_png_bytes(im)
 
+
 def image_to_png_bytes(im):
     image_buffer = BytesIO()
     im.save(image_buffer, format="PNG")
     image_buffer.seek(0)
     return image_buffer.read()
+
 
 @post('/api/print/text')
 @get('/api/print/text')
@@ -283,7 +312,8 @@ def print_text():
         return return_dict
 
     im = create_label_im(**context)
-    if DEBUG: im.save('sample-out.png')
+    if DEBUG:
+        im.save('sample-out.png')
 
     if context['kind'] == ENDLESS_LABEL:
         rotate = 0 if context['orientation'] == 'standard' else 90
@@ -305,11 +335,11 @@ def print_text():
 
         create_label(
             qlr,
-            im, 
-            context['label_size'], 
-            red=red, 
-            threshold=context['threshold'], 
-            cut=cut, 
+            im,
+            context['label_size'],
+            red=red,
+            threshold=context['threshold'],
+            cut=cut,
             rotate=rotate)
 
         if not DEBUG:
@@ -324,19 +354,27 @@ def print_text():
                 return return_dict
 
     return_dict['success'] = True
-    if DEBUG: return_dict['data'] = str(qlr.data)
+    if DEBUG:
+        return_dict['data'] = str(qlr.data)
     return return_dict
+
 
 def main():
     global DEBUG, FONTS, BACKEND_CLASS, CONFIG
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--port', default=False)
-    parser.add_argument('--loglevel', type=lambda x: getattr(logging, x.upper()), default=False)
-    parser.add_argument('--font-folder', default=False, help='folder for additional .ttf/.otf fonts')
-    parser.add_argument('--default-label-size', default=False, help='Label size inserted in your printer. Defaults to 62.')
-    parser.add_argument('--default-orientation', default=False, choices=('standard', 'rotated'), help='Label orientation, defaults to "standard". To turn your text by 90°, state "rotated".')
-    parser.add_argument('--model', default=False, choices=models, help='The model of your printer (default: QL-500)')
-    parser.add_argument('printer',  nargs='?', default=False, help='String descriptor for the printer to use (like tcp://192.168.0.23:9100 or file:///dev/usb/lp0)')
+    parser.add_argument(
+        '--loglevel', type=lambda x: getattr(logging, x.upper()), default=False)
+    parser.add_argument('--font-folder', default=False,
+                        help='folder for additional .ttf/.otf fonts')
+    parser.add_argument('--default-label-size', default=False,
+                        help='Label size inserted in your printer. Defaults to 62.')
+    parser.add_argument('--default-orientation', default=False, choices=('standard', 'rotated'),
+                        help='Label orientation, defaults to "standard". To turn your text by 90°, state "rotated".')
+    parser.add_argument('--model', default=False, choices=models,
+                        help='The model of your printer (default: QL-500)')
+    parser.add_argument('printer',  nargs='?', default=False,
+                        help='String descriptor for the printer to use (like tcp://192.168.0.23:9100 or file:///dev/usb/lp0)')
     args = parser.parse_args()
 
     if args.printer:
@@ -371,7 +409,6 @@ def main():
     else:
         ADDITIONAL_FONT_FOLDER = CONFIG['SERVER']['ADDITIONAL_FONT_FOLDER']
 
-
     logging.basicConfig(level=LOGLEVEL)
 
     try:
@@ -397,15 +434,18 @@ def main():
             CONFIG['LABEL']['DEFAULT_FONTS'] = font
             logger.debug("Selected the following default font: {}".format(font))
             break
-        except: pass
+        except:
+            pass
     if CONFIG['LABEL']['DEFAULT_FONTS'] is None:
         sys.stderr.write('Could not find any of the default fonts. Choosing a random one.\n')
-        family =  random.choice(list(FONTS.keys()))
-        style =   random.choice(list(FONTS[family].keys()))
+        family = random.choice(list(FONTS.keys()))
+        style  = random.choice(list(FONTS[family].keys()))
         CONFIG['LABEL']['DEFAULT_FONTS'] = {'family': family, 'style': style}
-        sys.stderr.write('The default font is now set to: {family} ({style})\n'.format(**CONFIG['LABEL']['DEFAULT_FONTS']))
+        sys.stderr.write('The default font is now set to: {family} ({style})\n'.format(
+            **CONFIG['LABEL']['DEFAULT_FONTS']))
 
     run(host=CONFIG['SERVER']['HOST'], port=PORT, debug=DEBUG)
+
 
 if __name__ == "__main__":
     main()
