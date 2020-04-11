@@ -78,6 +78,8 @@ def get_label_context(request):
       'margin_right':  float(d.get('margin_right',  35))/100.,
       'print_type':    d.get('print_type', 'text'),
       'qrcode_size':   int(d.get('qrcode_size', 10)),
+      'print_count':   int(d.get('print_count', 1)),
+      'cut_once':      int(d.get('cut_once', 0)),
     }
     context['margin_top']    = int(context['font_size']*context['margin_top'])
     context['margin_bottom'] = int(context['font_size']*context['margin_bottom'])
@@ -85,6 +87,8 @@ def get_label_context(request):
     context['margin_right']  = int(context['font_size']*context['margin_right'])
 
     context['fill_color']  = (255, 0, 0) if 'red' in context['label_size'] else (0, 0, 0)
+
+    context['cut_once'] = True if context['cut_once'] == 1 else False
 
     def get_font_path(font_family_name, font_style_name):
         try:
@@ -290,18 +294,34 @@ def print_text():
     red = False
     if 'red' in context['label_size']:
         red = True
-    create_label(qlr, im, context['label_size'], red=red, threshold=context['threshold'], cut=True, rotate=rotate)
 
-    if not DEBUG:
-        try:
-            be = BACKEND_CLASS(CONFIG['PRINTER']['PRINTER'])
-            be.write(qlr.data)
-            be.dispose()
-            del be
-        except Exception as e:
-            return_dict['message'] = str(e)
-            logger.warning('Exception happened: %s', e)
-            return return_dict
+    for cnt in range(1, context['print_count']+1):
+        if context['cut_once'] == False:
+            cut = True
+        elif context['cut_once'] == True and cnt == context['print_count']:
+            cut = True
+        else:
+            cut = False
+
+        create_label(
+            qlr,
+            im, 
+            context['label_size'], 
+            red=red, 
+            threshold=context['threshold'], 
+            cut=cut, 
+            rotate=rotate)
+
+        if not DEBUG:
+            try:
+                be = BACKEND_CLASS(CONFIG['PRINTER']['PRINTER'])
+                be.write(qlr.data)
+                be.dispose()
+                del be
+            except Exception as e:
+                return_dict['message'] = str(e)
+                logger.warning('Exception happened: %s', e)
+                return return_dict
 
     return_dict['success'] = True
     if DEBUG: return_dict['data'] = str(qlr.data)

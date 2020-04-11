@@ -19,3 +19,13 @@ textarea#labelText {
 .roundPreviewImage {
     border-radius: 100%;
 }
+
+.btn-group,
+.btn-group-vertical {
+    display: flex;
+}
+
+.btn-group-vertical>.btn,
+.btn-group>.btn {
+    float: none;
+}
