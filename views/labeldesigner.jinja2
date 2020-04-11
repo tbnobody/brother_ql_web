@@ -175,9 +175,7 @@
 {% endblock %}
 
 {% block javascript %}
-var text = $('#labelText');
 function formData(cut_once) {
-    //var text = $('#labelText').val().replace(/\n/g, "%0A");
     var text = $('#labelText').val();
     if (text == '') text = ' ';
     return {
