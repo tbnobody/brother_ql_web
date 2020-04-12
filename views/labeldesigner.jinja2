@@ -195,10 +195,10 @@
                 <button type="button" id="printButton" class="btn btn-block btn-primary btn-lg" onClick="print()">
                     <span class="fas fa-print" aria-hidden="true"></span> Print
                 </button>
-                <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" id="dropdownMenuReference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
+                <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" id="dropdownPrintButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
                     <span class="sr-only">Toggle Dropdown</span>
                 </button>
-                <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+                <div class="dropdown-menu" aria-labelledby="dropdownPrintButton">
                     <a class="dropdown-item" href="#" onClick="print(true)">Cut only once</a>
                 </div>
             </div>
@@ -286,10 +286,12 @@ function setStatus(data) {
         $('#statusPanel').html('<div id="statusBox" class="alert alert-warning" role="alert"><i class="fas fa-exclamation-triangle"></i><span>Printing was unsuccessful:<br />'+data['message']+'</span></div>');
     }
     $('#printButton').prop('disabled', false);
+    $('#dropdownPrintButton').prop('disabled', false);
 }
 
 function print(cut_once = false) {
     $('#printButton').prop('disabled', true);
+    $('#dropdownPrintButton').prop('disabled', true);
     $('#statusPanel').html('<div id="statusBox" class="alert alert-info" role="alert"><i class="fas fa-hourglass-half"></i><span>Processing print request...</span></div>');
     $.ajax({
         type:     'POST',
