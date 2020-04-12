@@ -9,26 +9,35 @@ You need Python 3 for this software to work.
 The web interface is [responsive](https://en.wikipedia.org/wiki/Responsive_web_design).
 There's also a screenshot showing [how it looks on a smartphone](./static/images/screenshots/Label-Designer_Phone.png)
 
+### Additional Features
+* Print text as QR Code
+    * Add text to QR Code
+    * Change size of QR Code
+* Change print color for black/white/red labels
+* Print lables multiple times
+    * Cut every label
+    * Cut only after the last label
+* Migrated GUI to Bootstrap 4
+* Make preview for round labels.. round
+
 ### Installation
 
-**ProTip™**: If you know how to use Docker, you might want to use my ready-to-use Docker image to deploy this software.
-It can be found [on the Docker hub](https://hub.docker.com/r/pklaus/brother_ql_web/).  
-Otherwise, follow the instructions below.
+This installation manual requires only a default installation of Debian 10 (Buster).
+Install prerequisites:
+
+    apt install fontconfig python3-venv python3-pip git
 
 Get the code:
 
-    git clone https://github.com/pklaus/brother_ql_web.git
+    cd /opt
+    git clone https://github.com/tbnobody/brother_ql_web.git
 
-or download [the ZIP file](https://github.com/pklaus/brother_ql_web/archive/master.zip) and unpack it.
+Build the venv and install the requirements:
 
-Install the requirements:
-
+    cd /opt/brother_ql_web
+    python3 -m venv .venv
+    source /opt/brother_ql_web/.venv/bin/activate
     pip install -r requirements.txt
-
-In addition, `fontconfig` should be installed on your system. It's used to identify and
-inspect fonts on your machine. This package is pre-installed on many Linux distributions.
-If you're using a Mac, I recommend to use [Homebrew](https://brew.sh) to install
-fontconfig using [`brew install fontconfig`](http://brewformulas.org/Fontconfig).
 
 ### Configuration file
 
@@ -44,13 +53,13 @@ To start the server, run `./brother_ql_web.py`. The command line parameters over
                              [--default-orientation {standard,rotated}]
                              [--model {QL-500,QL-550,QL-560,QL-570,QL-580N,QL-650TD,QL-700,QL-710W,QL-720NW,QL-1050,QL-1060N}]
                              [printer]
-    
+
     This is a web service to print labels on Brother QL label printers.
-    
+
     positional arguments:
       printer               String descriptor for the printer to use (like
                             tcp://192.168.0.23:9100 or file:///dev/usb/lp0)
-    
+
     optional arguments:
       -h, --help            show this help message and exit
       --port PORT
@@ -85,5 +94,5 @@ This software is published under the terms of the GPLv3, see the LICENSE file in
 Parts of this package are redistributed software products from 3rd parties. They are subject to different licenses:
 
 * [Bootstrap](https://github.com/twbs/bootstrap), MIT License
-* [Glyphicons](https://getbootstrap.com/docs/3.3/components/#glyphicons), MIT License (as part of Bootstrap 3.3)
+* [Font Awesome](https://github.com/FortAwesome/Font-Awesome), CC BY 4.0 License
 * [jQuery](https://github.com/jquery/jquery), MIT License
