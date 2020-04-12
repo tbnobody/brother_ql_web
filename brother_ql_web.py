@@ -88,6 +88,7 @@ def get_label_context(request):
         'print_type':    d.get('print_type', 'text'),
         'qrcode_size':   int(d.get('qrcode_size', 10)),
         'print_count':   int(d.get('print_count', 1)),
+        'print_color':   d.get('print_color', 'black'),
         'cut_once':      int(d.get('cut_once', 0)),
     }
     context['margin_top']    = int(context['font_size']*context['margin_top'])
@@ -95,7 +96,7 @@ def get_label_context(request):
     context['margin_left']   = int(context['font_size']*context['margin_left'])
     context['margin_right']  = int(context['font_size']*context['margin_right'])
 
-    context['fill_color']    = (255, 0, 0) if 'red' in context['label_size'] else (0, 0, 0)
+    context['fill_color']    = (255, 0, 0) if 'red' in context['label_size'] and context['print_color'] == 'red' else (0, 0, 0)
 
     context['cut_once'] = True if context['cut_once'] == 1 else False
 

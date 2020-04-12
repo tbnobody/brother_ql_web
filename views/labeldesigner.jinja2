@@ -41,6 +41,21 @@
                                     Rotated
                                 </label>
                             </div>
+
+                            <label for="printColor" style="margin-top: 10px; margin-bottom: 0">Print Color:</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" onchange="preview()" name="printColor" id="print_color_black" value="black" checked>
+                                <label class="form-check-label" for="print_color_black">
+                                    Black
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" onchange="preview()" name="printColor" id="print_color_red" value="red">
+                                <label class="form-check-label" for="print_color_red">
+                                    Red
+                                </label>
+                            </div>
+
                         </div>
                         <!-- class="card-body" -->
                     </div>
@@ -206,6 +221,7 @@ function formData(cut_once) {
         print_type:    $('#printType').val(),
         qrcode_size:   $('#qrCodeSize').val(),
         print_count:   $('#printCount').val(),
+        print_color:   $('input[name=printColor]:checked').val(),
         cut_once:      cut_once ? 1 : 0,
     }
 }
@@ -223,6 +239,14 @@ function preview() {
     } else {
         $('.marginsTopBottom').prop('disabled', true).prop('title', 'Only relevant if standard orientation is selected.');
         $('.marginsLeftRight').prop('disabled', false).removeAttr('title');
+    }
+
+    if ($('#labelSize option:selected').val().includes('red')) {
+        $('#print_color_black').prop('disabled', false);
+        $('#print_color_red').prop('disabled', false);
+    } else {
+        $('#print_color_black').prop('disabled', true).prop('checked', true);
+        $('#print_color_red').prop('disabled', true);
     }
 
     $.ajax({
