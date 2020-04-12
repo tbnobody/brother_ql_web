@@ -24,7 +24,7 @@
                     </div>
                     <div id="collapse1" class="collapse" aria-labelledby="heading1" data-parent="#accordion">
                         <div class="card-body">
-                            <label for="labelSize" style="display: none">Label Size:</label>
+                            <label for="labelSize" style="margin-bottom: 0">Label Size:</label>
                             <select class="form-control" id="labelSize" onChange="preview()">
                                 {% for label_size in label_sizes %}<option value="{{label_size[0]}}" data-round="{{label_size[2]}}" {% if label['DEFAULT_SIZE'] == label_size[0] %}selected{% endif %}>{{label_size[1]}}</option>{% endfor %}
                             </select>
@@ -64,7 +64,7 @@
                     </div>
                     <div id="collapse2" class="collapse show" aria-labelledby="heading2" data-parent="#accordion">
                         <div class="card-body">
-                            <label for="fontFamily">Font Family:</label>
+                            <label for="fontFamily" style="margin-bottom: 0">Font Family:</label>
                             <select class="form-control" id="fontFamily" onChange="preview()">
                                 {% for font_family_name in font_family_names %}
                                     {% for font_style in fonts[font_family_name].keys() %}
@@ -72,10 +72,10 @@
                                     {% endfor %}
                                 {% endfor %}
                             </select>
-                            <label for="fontSize">Font Size:</label>
+                            <label for="fontSize" style="margin-top: 10px; margin-bottom: 0">Font Size:</label>
                             <input id="fontSize" class="form-control" type="number" min="1" value="{{ label['DEFAULT_FONT_SIZE'] }}" onChange="preview()" required>
 
-                            <label for="fontAlign" class="control-label input-group">Font Alignment:</label>
+                            <label for="fontAlign" class="control-label input-group" style="margin-top: 10px; margin-bottom: 0">Font Alignment:</label>
                             <div class="btn-group btn-group-toggle" data-toggle="buttons">
                                 <label class="btn btn-secondary ">
                                     <input type="radio" name="fontAlign" onchange="preview()" value="left" aria-label="Left Align"><span class="fas fa-align-left" aria-hidden="true"></span>
@@ -100,10 +100,10 @@
                     </div>
                     <div id="collapse4" class="collapse" aria-labelledby="heading4" data-parent="#accordion">
                         <div class="card-body">
-                            <label for="qrCodeSize">QR Code Size:</label>
+                            <label for="qrCodeSize" style="margin-bottom: 0">QR Code Size:</label>
                             <input id="qrCodeSize" class="form-control" type="number" min="1" value="{{default_qr_size}}" onChange="preview()" required>
 
-                            <label for="qrCodeCorrection">Error Correction:</label>
+                            <label for="qrCodeCorrection" style="margin-top: 10px; margin-bottom: 0">Error Correction:</label>
                             <select class="form-control" id="qrCodeCorrection" onChange="preview()">
                                 <option value="L">About 7% can be corrected.</option>
                                 <option value="M">About 15% can be corrected.</option>
@@ -123,34 +123,28 @@
                     </div>
                     <div id="collapse3" class="collapse" aria-labelledby="heading3" data-parent="#accordion">
                         <div class="card-body">
-                            <label for="printType">Print Type:</label>
-                            <select class="form-control" id="printType" onChange="preview()">
-                                <option value="text">Text</option>
-                                <option value="qrcode">QR Code</option>
-                                <option value="qrcode_text">QR Code + Text</option>
-                            </select>
-                            <label for="marginTop">Margin Top:</label>
+                            <label for="marginTop" style="margin-bottom: 0">Margin Top:</label>
                             <div class="input-group marginsTopBottom">
                                 <input id="marginTop" class="form-control" type="number" min="0" max="200" value="24" onChange="preview()" aria-describedby="marginTop-addon" required>
                                 <div class="input-group-append">
                                     <span class="input-group-text" id="marginTop-addon">%</span>
                                 </div>
                             </div>
-                            <label for="marginBottom">Margin Bottom:</label>
+                            <label for="marginBottom" style="margin-top: 10px; margin-bottom: 0">Margin Bottom:</label>
                             <div class="input-group marginsTopBottom">
                                 <input id="marginBottom" class="form-control" type="number" min="0" max="200" value="45" onChange="preview()" aria-describedby="marginBottom-addon" required>
                                 <div class="input-group-append">
                                     <span class="input-group-text" id="marginBottom-addon">%</span>
                                 </div>
                             </div>
-                            <label for="marginLeft">Margin Left:</label>
+                            <label for="marginLeft" style="margin-top: 10px; margin-bottom: 0">Margin Left:</label>
                             <div class="input-group marginsLeftRight">
                                 <input id="marginLeft" class="form-control" type="number" min="0" max="200" value="35" onChange="preview()" aria-describedby="marginLeft-addon" required>
                                 <div class="input-group-append">
                                     <span class="input-group-text" id="marginLeft-addon">%</span>
                                 </div>
                             </div>
-                            <label for="marginRight">Margin Right:</label>
+                            <label for="marginRight" style="margin-top: 10px; margin-bottom: 0">Margin Right:</label>
                             <div class="input-group marginsLeftRight">
                                 <input id="marginRight" class="form-control" type="number" min="0" max="200" value="35" onChange="preview()" aria-describedby="marginRight-addon" required>
                                 <div class="input-group-append">
@@ -165,19 +159,35 @@
         </fieldset>
     </div>
     <div class="col-md-4">
+        <label for="printType" class="control-label input-group" style="margin-bottom: 0">Print Type:</label>
+        <div class="btn-group btn-group-toggle btn-block" data-toggle="buttons">
+            <label class="btn btn-secondary active" id="printTypeText">
+                <input type="radio" name="printType" onchange="preview()" value="text" aria-label="Text" checked>
+                <span class="fas fa-font" aria-hidden="true"></span> Text
+            </label>
+            <label class="btn btn-secondary" id="printTypeQrCode">
+                <input type="radio" name="printType" onchange="preview()" value="qrcode" aria-label="Text">
+                <span class="fas fa-qrcode" aria-hidden="true"></span> QR Code
+            </label>
+            <label class="btn btn-secondary" id="printTypeQrCodeText">
+                <input type="radio" name="printType" onchange="preview()" value="qrcode_text" aria-label="QR Code + Text">
+                <span class="fas fa-qrcode" aria-hidden="true"></span> QR Code+Text
+            </label>
+        </div>
+
         <fieldset class="form-group">
-            <label for="labelText">Label Text:</label>
+            <label for="labelText" style="margin-top: 10px; margin-bottom: 0">Label Text:</label>
             <textarea rows="7" id="labelText" class="form-control" onChange="preview()" onInput="preview()"></textarea>
         </fieldset>
     </div>
     <div class="col-md-4">
         <fieldset class="form-group">
-            <label for="previewImg">Label Preview:</label><br />
+            <label for="previewImg" style="margin-bottom: 0">Label Preview:</label><br />
             <img id="previewImg" style="border: 1px solid #ced4da; max-height: 350px; width: auto; max-width: 100%; margin-bottom: 10px;" />
             <p>Printed size w/o margins: <span id="labelWidth">?</span> cm x <span id="labelHeight">?</span> cm</p>
 
             <div class="form-group">
-                <label for="printCount">Print Count:</label>
+                <label for="printCount" style="margin-top: 10px; margin-bottom: 0">Print Count:</label>
                 <input id="printCount" class="form-control" type="number" min="1" max="100" value="1" required>
             </div>
 
@@ -199,7 +209,7 @@
                 <span class="fas fa-terminal" aria-hidden="true" style="margin-right: 0.3em"></span> Status
             </div>
             <div id="statusPanel" class="card-body">
-                - Idle -
+                <div id="statusBox" class="alert alert-secondary" role="alert"><span>Idle...</span></div>
             </div>
         </div>
     </div>
@@ -221,7 +231,7 @@ function formData(cut_once) {
         margin_bottom: $('#marginBottom').val(),
         margin_left:   $('#marginLeft').val(),
         margin_right:  $('#marginRight').val(),
-        print_type:    $('#printType').val(),
+        print_type:    $('input[name=printType]:checked').val(),
         qrcode_size:   $('#qrCodeSize').val(),
         qrcode_correction: $('#qrCodeCorrection option:selected').val(),
         print_count:       $('#printCount').val(),
