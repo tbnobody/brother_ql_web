@@ -140,73 +140,29 @@ def get_label_context(request):
 
 def create_label_im(text, **kwargs):
     if kwargs['print_type'] == 'qrcode':
-        return create_qrcode_label_im(text, False, **kwargs)
+        return create_text_qrcode_label_im(text, False, True, **kwargs)
     elif kwargs['print_type'] == 'qrcode_text':
-        return create_qrcode_label_im(text, True, **kwargs)
+        return create_text_qrcode_label_im(text, True, True, **kwargs)
     else:
-        return create_text_label_im(text, **kwargs)
+        return create_text_qrcode_label_im(text, True, False, **kwargs)
 
 
-def create_text_label_im(text, **kwargs):
-    label_type = kwargs['kind']
-    im_font = ImageFont.truetype(kwargs['font_path'], kwargs['font_size'])
-    im = Image.new('L', (20, 20), 'white')
-    draw = ImageDraw.Draw(im)
-    # workaround for a bug in multiline_textsize()
-    # when there are empty lines in the text:
-    lines = []
-    for line in text.split('\n'):
-        if line == '':
-            line = ' '
-        lines.append(line)
-    text = '\n'.join(lines)
-    textsize = draw.multiline_textsize(text, font=im_font)
-    width, height = kwargs['width'], kwargs['height']
-    if kwargs['orientation'] == 'standard':
-        if label_type in (ENDLESS_LABEL,):
-            height = textsize[1] + kwargs['margin_top'] + kwargs['margin_bottom']
-    elif kwargs['orientation'] == 'rotated':
-        if label_type in (ENDLESS_LABEL,):
-            width = textsize[0] + kwargs['margin_left'] + kwargs['margin_right']
-    im = Image.new('RGB', (width, height), 'white')
-    draw = ImageDraw.Draw(im)
-    if kwargs['orientation'] == 'standard':
-        if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL):
-            vertical_offset  = (height - textsize[1])//2
-            vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
-        else:
-            vertical_offset = kwargs['margin_top']
-        horizontal_offset = max((width - textsize[0])//2, 0)
-    elif kwargs['orientation'] == 'rotated':
-        vertical_offset  = (height - textsize[1])//2
-        vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
-        if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL):
-            horizontal_offset = max((width - textsize[0])//2, 0)
-        else:
-            horizontal_offset = kwargs['margin_left']
-    offset = horizontal_offset, vertical_offset
-    draw.multiline_text(
-        offset,
-        text,
-        kwargs['fill_color'],
-        font=im_font,
-        align=kwargs['align'])
-    return im
-
-
-def create_qrcode_label_im(text, include_text, **kwargs):
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=kwargs['qrcode_correction'],
-        box_size=kwargs['qrcode_size'],
-        border=0,
-    )
-    qr.add_data(text)
-    qr.make(fit=True)
-    qr_img = qr.make_image(
-        fill_color='red' if (255, 0, 0) == kwargs['fill_color'] else 'black',
-        back_color="white")
-    qr_height, qr_width = qr_img.size
+def create_text_qrcode_label_im(text, include_text, include_qr, **kwargs):
+    if include_qr:
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=kwargs['qrcode_correction'],
+            box_size=kwargs['qrcode_size'],
+            border=0,
+        )
+        qr.add_data(text)
+        qr.make(fit=True)
+        qr_img = qr.make_image(
+            fill_color='red' if (255, 0, 0) == kwargs['fill_color'] else 'black',
+            back_color="white")
+        qr_height, qr_width = qr_img.size
+    else:
+        qr_height, qr_width = (0, 0)
 
     label_type = kwargs['kind']
 
@@ -261,7 +217,10 @@ def create_qrcode_label_im(text, include_text, **kwargs):
     qr_offset = horizontal_offset_qrcode, vertical_offset_qrcode
 
     im = Image.new('RGB', (width, height), 'white')
-    im.paste(qr_img, qr_offset)
+
+    if include_qr:
+        im.paste(qr_img, qr_offset)
+
     if include_text:
         draw = ImageDraw.Draw(im)
         draw.multiline_text(
