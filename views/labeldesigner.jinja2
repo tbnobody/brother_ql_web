@@ -100,8 +100,16 @@
                     </div>
                     <div id="collapse4" class="collapse" aria-labelledby="heading4" data-parent="#accordion">
                         <div class="card-body">
-                            <label for="fontSize">QR Code Size:</label>
+                            <label for="qrCodeSize">QR Code Size:</label>
                             <input id="qrCodeSize" class="form-control" type="number" min="1" value="{{default_qr_size}}" onChange="preview()" required>
+
+                            <label for="qrCodeCorrection">Error Correction:</label>
+                            <select class="form-control" id="qrCodeCorrection" onChange="preview()">
+                                <option value="L">About 7% can be corrected.</option>
+                                <option value="M">About 15% can be corrected.</option>
+                                <option value="Q">About 25% can be corrected.</option>
+                                <option value="H">About 30% can be corrected.</option>
+                            </select>
                         </div>
                         <!-- class="card-body" -->
                     </div>
@@ -215,9 +223,10 @@ function formData(cut_once) {
         margin_right:  $('#marginRight').val(),
         print_type:    $('#printType').val(),
         qrcode_size:   $('#qrCodeSize').val(),
-        print_count:   $('#printCount').val(),
-        print_color:   $('input[name=printColor]:checked').val(),
-        cut_once:      cut_once ? 1 : 0,
+        qrcode_correction: $('#qrCodeCorrection option:selected').val(),
+        print_count:       $('#printCount').val(),
+        print_color:       $('input[name=printColor]:checked').val(),
+        cut_once:          cut_once ? 1 : 0,
     }
 }
 

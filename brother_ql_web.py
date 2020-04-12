@@ -87,9 +87,10 @@ def get_label_context(request):
         'margin_right':  float(d.get('margin_right',  35))/100.,
         'print_type':    d.get('print_type', 'text'),
         'qrcode_size':   int(d.get('qrcode_size', 10)),
-        'print_count':   int(d.get('print_count', 1)),
-        'print_color':   d.get('print_color', 'black'),
-        'cut_once':      int(d.get('cut_once', 0)),
+        'qrcode_correction': d.get('qrcode_correction', 'L'),
+        'print_count':       int(d.get('print_count', 1)),
+        'print_color':       d.get('print_color', 'black'),
+        'cut_once':          int(d.get('cut_once', 0)),
     }
     context['margin_top']    = int(context['font_size']*context['margin_top'])
     context['margin_bottom'] = int(context['font_size']*context['margin_bottom'])
@@ -99,6 +100,14 @@ def get_label_context(request):
     context['fill_color']    = (255, 0, 0) if 'red' in context['label_size'] and context['print_color'] == 'red' else (0, 0, 0)
 
     context['cut_once'] = True if context['cut_once'] == 1 else False
+
+    qrSwitch = {
+        'L': qrcode.constants.ERROR_CORRECT_L,
+        'M': qrcode.constants.ERROR_CORRECT_M,
+        'Q': qrcode.constants.ERROR_CORRECT_Q,
+        'H': qrcode.constants.ERROR_CORRECT_H
+    }
+    context['qrcode_correction'] = qrSwitch.get(context['qrcode_correction'], qrcode.constants.ERROR_CORRECT_L)
 
     def get_font_path(font_family_name, font_style_name):
         try:
@@ -188,7 +197,7 @@ def create_text_label_im(text, **kwargs):
 def create_qrcode_label_im(text, include_text, **kwargs):
     qr = qrcode.QRCode(
         version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        error_correction=kwargs['qrcode_correction'],
         box_size=kwargs['qrcode_size'],
         border=0,
     )
