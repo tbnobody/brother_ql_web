@@ -183,15 +183,19 @@
                 <input type="radio" name="printType" onchange="preview()" value="qrcode_text" aria-label="QR Code + Text">
                 <span class="fas fa-qrcode" aria-hidden="true"></span> QR Code+Text
             </label>
+            <label class="btn btn-secondary" id="printTypeImage">
+                <input type="radio" name="printType" onchange="preview()" value="image" aria-label="Image">
+                <span class="fas fa-image" aria-hidden="true"></span> Image
+            </label>
         </div>
 
-        <fieldset class="form-group">
+        <fieldset class="form-group" id="groupLabelText">
             <label for="labelText" style="margin-top: 10px; margin-bottom: 0">Label Text:</label>
             <textarea rows="7" id="labelText" class="form-control" onChange="preview()" onInput="preview()"></textarea>
         </fieldset>
-        <fieldset class="form-group">
-            <label>Label Image:</label>
-            <form action="/file-upload" class="dropzone">
+        <fieldset class="form-group" id="groupLabelImage">
+            <label style="margin-top: 10px; margin-bottom: 0">Label Image:</label>
+            <form action="/api/preview/image?return_format=base64" class="dropzone">
             </form>
         </fieldset>
     </div>
@@ -277,6 +281,14 @@ function preview() {
     } else {
         $('#print_color_black').addClass('disabled').prop('active', true);
         $('#print_color_red').addClass('disabled');
+    }
+
+    if($('input[name=printType]:checked').val() == 'image') {
+        $('#groupLabelText').hide();
+        $('#groupLabelImage').show()
+    } else {
+        $('#groupLabelText').show();
+        $('#groupLabelImage').hide();
     }
 
     $.ajax({
