@@ -87,6 +87,16 @@
                                     <input type="radio" name="fontAlign" onchange="preview()" value="right" aria-label="Right Align"><span class="fas fa-align-right" aria-hidden="true"></span>
                                 </label>
                             </div>
+
+                            <label for="lineSpacing" class="control-label input-group" style="margin-top: 10px; margin-bottom: 0">Line Spacing:</label>
+                            <div class="btn-group btn-group-toggle btn-block" data-toggle="buttons">
+                                {% for line_spacing in line_spacings %}
+                                <label class="btn btn-secondary {% if default_line_spacing == line_spacing %}active{% endif %}" id="lineSpacing{{line_spacing}}">
+                                    <input type="radio" name="lineSpacing" onchange="preview()" value="{{line_spacing}}" aria-label="{{line_spacing}}%" {% if default_line_spacing == line_spacing %}checked{% endif %}>{{line_spacing}}%
+                                </label>
+                                {% endfor %}
+                            </div>
+
                         </div>
                         <!-- class="card-body" -->
                     </div>
@@ -236,6 +246,7 @@ function formData(cut_once) {
         qrcode_correction: $('#qrCodeCorrection option:selected').val(),
         print_count:       $('#printCount').val(),
         print_color:       $('input[name=printColor]:checked').val(),
+        line_spacing:      $('input[name=lineSpacing]:checked').val(),
         cut_once:          cut_once ? 1 : 0,
     }
 }

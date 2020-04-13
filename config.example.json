@@ -18,7 +18,8 @@
             {"family": "Linux Libertine", "style": "Regular"},
             {"family": "DejaVu Serif",    "style": "Book"}
         ],
-        "DEFAULT_QR_SIZE": 10
+        "DEFAULT_QR_SIZE": 10,
+        "DEFAULT_LINE_SPACING": 100
     },
     "WEBSITE": {
         "HTML_TITLE": "Label Designer",

@@ -32,6 +32,8 @@ LABEL_SIZES = [(
         ROUND_DIE_CUT_LABEL,))  # True if round label
 ) for name in label_sizes]
 
+LINE_SPACINGS = (100, 150, 200, 250, 300)
+
 try:
     with open('config.json', encoding='utf-8') as fh:
         CONFIG = json.load(fh)
@@ -60,7 +62,9 @@ def labeldesigner():
             'website': CONFIG['WEBSITE'],
             'label': CONFIG['LABEL'],
             'default_orientation': CONFIG['LABEL']['DEFAULT_ORIENTATION'],
-            'default_qr_size': CONFIG['LABEL']['DEFAULT_QR_SIZE']}
+            'default_qr_size': CONFIG['LABEL']['DEFAULT_QR_SIZE'],
+            'line_spacings': LINE_SPACINGS,
+            'default_line_spacing': CONFIG['LABEL']['DEFAULT_LINE_SPACING']}
 
 
 def get_label_context(request):
@@ -90,6 +94,7 @@ def get_label_context(request):
         'qrcode_correction': d.get('qrcode_correction', 'L'),
         'print_count':       int(d.get('print_count', 1)),
         'print_color':       d.get('print_color', 'black'),
+        'line_spacing':      int(d.get('line_spacing', 100)),
         'cut_once':          int(d.get('cut_once', 0)),
     }
     context['margin_top']    = int(context['font_size']*context['margin_top'])
@@ -178,7 +183,7 @@ def create_text_qrcode_label_im(text, include_text, include_qr, **kwargs):
                 line = ' '
             lines.append(line)
         text = '\n'.join(lines)
-        textsize = draw.multiline_textsize(text, font=im_font)
+        textsize = draw.multiline_textsize(text, font=im_font, spacing=int(kwargs['font_size']*((kwargs['line_spacing'] - 100) / 100)))
     else:
         textsize = (0, 0)
 
@@ -228,7 +233,8 @@ def create_text_qrcode_label_im(text, include_text, include_qr, **kwargs):
             text,
             kwargs['fill_color'],
             font=im_font,
-            align=kwargs['align'])
+            align=kwargs['align'],
+            spacing=int(kwargs['font_size']*((kwargs['line_spacing'] - 100) / 100)))
 
     return im
 
