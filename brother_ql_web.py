@@ -167,9 +167,9 @@ def create_text_qrcode_label_im(text, include_text, include_qr, **kwargs):
         qr_img = qr.make_image(
             fill_color='red' if (255, 0, 0) == kwargs['fill_color'] else 'black',
             back_color="white")
-        qr_height, qr_width = qr_img.size
+        qr_width, qr_height = qr_img.size
     else:
-        qr_height, qr_width = (0, 0)
+        qr_width, qr_height = (0, 0)
 
     label_type = kwargs['kind']
 
