@@ -72,8 +72,10 @@ def get_label_context(request):
 
     d = request.params.decode()  # UTF-8 decoded form data
 
-    font_family = d.get('font_family').rpartition('(')[0].strip()
-    font_style  = d.get('font_family').rpartition('(')[2].rstrip(')')
+    default_font = list(FONTS.items())[0][0] + ' (' + list(list(FONTS.items())[0][1])[0] + ')'
+
+    font_family = d.get('font_family', default_font).rpartition('(')[0].strip()
+    font_style  = d.get('font_family', default_font).rpartition('(')[2].rstrip(')')
     context = {
         'text':          d.get('text', None),
         'font_size': int(d.get('font_size', 100)),
