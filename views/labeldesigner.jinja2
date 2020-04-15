@@ -195,7 +195,7 @@
         </fieldset>
         <fieldset class="form-group" id="groupLabelImage">
             <label style="margin-top: 10px; margin-bottom: 0">Label Image:</label>
-            <form action="/api/preview/image?return_format=base64" class="dropzone" id="my-awesome-dropzone">
+            <form action="/api/preview?return_format=base64" class="dropzone" id="my-awesome-dropzone">
             </form>
         </fieldset>
     </div>
@@ -307,7 +307,7 @@ function preview() {
 
     $.ajax({
         type:        'POST',
-        url:         '/api/preview/text?return_format=base64',
+        url:         '/api/preview?return_format=base64',
         contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
         data:        formData(),
         success: function( data ) {
@@ -334,7 +334,7 @@ function print(cut_once = false) {
         type:     'POST',
         dataType: 'json',
         data:     formData(cut_once),
-        url:      '/api/print/text',
+        url:      '/api/print',
         success:  setStatus,
         error:    setStatus
     });

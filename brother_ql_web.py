@@ -116,6 +116,12 @@ def get_label_context(request):
     }
     context['qrcode_correction'] = qrSwitch.get(context['qrcode_correction'], qrcode.constants.ERROR_CORRECT_L)
 
+    try:
+        context['upload_image'] = file_to_image(request.files.get('image', None))
+        context['upload_image'] = convert_image_to_bw(context['upload_image'], 200)
+    except AttributeError:
+        context['upload_image'] = None
+
     def get_font_path(font_family_name, font_style_name):
         try:
             if font_family_name is None or font_style_name is None:
@@ -145,31 +151,49 @@ def get_label_context(request):
     return context
 
 
+def create_qr_code(text, size, correction, fill_color):
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=correction,
+        box_size=size,
+        border=0,
+    )
+    qr.add_data(text)
+    qr.make(fit=True)
+    qr_img = qr.make_image(
+        fill_color='red' if (255, 0, 0) == fill_color else 'black',
+        back_color="white")
+    return qr_img
+
+
 def create_label_im(text, **kwargs):
-    if kwargs['print_type'] == 'qrcode':
-        return create_text_qrcode_label_im(text, False, True, **kwargs)
-    elif kwargs['print_type'] == 'qrcode_text':
-        return create_text_qrcode_label_im(text, True, True, **kwargs)
-    else:
-        return create_text_qrcode_label_im(text, True, False, **kwargs)
-
-
-def create_text_qrcode_label_im(text, include_text, include_qr, **kwargs):
-    if include_qr:
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=kwargs['qrcode_correction'],
-            box_size=kwargs['qrcode_size'],
-            border=0,
+    if kwargs['print_type'] == 'qrcode' or kwargs['print_type'] == 'qrcode_text':
+        img = create_qr_code(
+            text,
+            kwargs['qrcode_size'],
+            kwargs['qrcode_correction'],
+            kwargs['fill_color']
         )
-        qr.add_data(text)
-        qr.make(fit=True)
-        qr_img = qr.make_image(
-            fill_color='red' if (255, 0, 0) == kwargs['fill_color'] else 'black',
-            back_color="white")
-        qr_width, qr_height = qr_img.size
+    elif kwargs['print_type'] == 'image':
+        img = kwargs['upload_image']
     else:
-        qr_width, qr_height = (0, 0)
+        img = None
+
+    if kwargs['print_type'] == 'qrcode':
+        return assemble_label_im(text, img, False, **kwargs)
+    elif kwargs['print_type'] == 'qrcode_text':
+        return assemble_label_im(text, img, True, **kwargs)
+    elif kwargs['print_type'] == 'image':
+        return assemble_label_im(text, img, False, **kwargs)
+    else:
+        return assemble_label_im(text, None, True, **kwargs)
+
+
+def assemble_label_im(text, image, include_text, **kwargs):
+    if image is not None:
+        image_width, image_height = image.size
+    else:
+        image_width, image_height = (0, 0)
 
     label_type = kwargs['kind']
 
@@ -192,41 +216,41 @@ def create_text_qrcode_label_im(text, include_text, include_qr, **kwargs):
     width, height = kwargs['width'], kwargs['height']
     if kwargs['orientation'] == 'standard':
         if label_type in (ENDLESS_LABEL,):
-            height = qr_height + textsize[1] + kwargs['margin_top'] + kwargs['margin_bottom']
+            height = image_height + textsize[1] + kwargs['margin_top'] + kwargs['margin_bottom']
     elif kwargs['orientation'] == 'rotated':
         if label_type in (ENDLESS_LABEL,):
-            width = qr_width + textsize[0] + kwargs['margin_left'] + kwargs['margin_right']
+            width = image_width + textsize[0] + kwargs['margin_left'] + kwargs['margin_right']
 
     if kwargs['orientation'] == 'standard':
         if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL):
-            vertical_offset  = (height - qr_height - textsize[1])//2
+            vertical_offset  = (height - image_height - textsize[1])//2
             vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
         else:
             vertical_offset = kwargs['margin_top']
 
-        vertical_offset += qr_height
+        vertical_offset += image_height
         horizontal_offset = max((width - textsize[0])//2, 0)
-        horizontal_offset_qrcode = (width - qr_width)//2
-        vertical_offset_qrcode = kwargs['margin_top']
+        horizontal_offset_image = (width - image_width)//2
+        vertical_offset_image = kwargs['margin_top']
 
     elif kwargs['orientation'] == 'rotated':
         vertical_offset  = (height - textsize[1])//2
         vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
         if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL):
-            horizontal_offset = max((width - qr_width - textsize[0])//2, 0)
+            horizontal_offset = max((width - image_width - textsize[0])//2, 0)
         else:
             horizontal_offset = kwargs['margin_left']
-        horizontal_offset += qr_width
-        horizontal_offset_qrcode = kwargs['margin_left']
-        vertical_offset_qrcode = (height - qr_height)//2
+        horizontal_offset += image_width
+        horizontal_offset_image = kwargs['margin_left']
+        vertical_offset_image = (height - image_height)//2
 
     offset = horizontal_offset, vertical_offset
-    qr_offset = horizontal_offset_qrcode, vertical_offset_qrcode
+    image_offset = horizontal_offset_image, vertical_offset_image
 
     im = Image.new('RGB', (width, height), 'white')
 
-    if include_qr:
-        im.paste(qr_img, qr_offset)
+    if image is not None:
+        im.paste(image, image_offset)
 
     if include_text:
         draw = ImageDraw.Draw(im)
@@ -246,63 +270,12 @@ def convert_image_to_bw(image, threshold):
     return image.convert('L').point(fn, mode='1') # convert to greyscale
 
 
-def create_label_upload(file, **kwargs):
-    try:
-        image = file_to_image(file)
-        image = convert_image_to_bw(image, 200)
-        image_width, image_height = image.size
-    except AttributeError:
-        image = None
-        image_width, image_height = (0, 0)
-
-    label_type = kwargs['kind']
-    width, height = kwargs['width'], kwargs['height']
-    if kwargs['orientation'] == 'standard':
-        if label_type in (ENDLESS_LABEL,):
-            height = image_height + kwargs['margin_top'] + kwargs['margin_bottom']
-    elif kwargs['orientation'] == 'rotated':
-        if label_type in (ENDLESS_LABEL,):
-            width = image_width + kwargs['margin_left'] + kwargs['margin_right']
-
-    if kwargs['orientation'] == 'standard':
-        horizontal_offset_image = (width - image_width)//2
-        vertical_offset_image = kwargs['margin_top']
-
-    elif kwargs['orientation'] == 'rotated':
-        horizontal_offset_image = kwargs['margin_left']
-        vertical_offset_image = (height - image_height)//2
-
-    image_offset = horizontal_offset_image, vertical_offset_image
-
-    im = Image.new('RGB', (width, height), 'white')
-
-    if image is not None:
-        im.paste(image, image_offset)
-
-    return im
-
-
-@get('/api/preview/image')
-@post('/api/preview/image')
+@get('/api/preview')
+@post('/api/preview')
 def get_preview_from_image():
     context = get_label_context(request)
-    im = create_label_upload(request.files.get('image'), **context)
-
-    return_format = request.query.get('return_format', 'png')
-    if return_format == 'base64':
-        import base64
-        response.set_header('Content-type', 'text/plain')
-        return base64.b64encode(image_to_png_bytes(im))
-    else:
-        response.set_header('Content-type', 'image/png')
-        return image_to_png_bytes(im)
-
-
-@get('/api/preview/text')
-@post('/api/preview/text')
-def get_preview_image():
-    context = get_label_context(request)
     im = create_label_im(**context)
+
     return_format = request.query.get('return_format', 'png')
     if return_format == 'base64':
         import base64
@@ -327,8 +300,8 @@ def file_to_image(file):
     return im
 
 
-@post('/api/print/text')
-@get('/api/print/text')
+@post('/api/print')
+@get('/api/print')
 def print_text():
     """
     API to print a label
