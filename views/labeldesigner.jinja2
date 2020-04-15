@@ -195,7 +195,7 @@
         </fieldset>
         <fieldset class="form-group" id="groupLabelImage">
             <label style="margin-top: 10px; margin-bottom: 0">Label Image:</label>
-            <form action="/api/preview?return_format=base64" class="dropzone" id="my-awesome-dropzone">
+            <form class="dropzone" id="my-awesome-dropzone">
             </form>
         </fieldset>
     </div>
@@ -301,6 +301,7 @@ function preview() {
     }
 
     if($('input[name=printType]:checked').val() == 'image') {
+        dropZoneMode = 'preview';
         imageDropZone.processQueue();
         return;
     }
@@ -330,6 +331,13 @@ function print(cut_once = false) {
     $('#printButton').prop('disabled', true);
     $('#dropdownPrintButton').prop('disabled', true);
     $('#statusPanel').html('<div id="statusBox" class="alert alert-info" role="alert"><i class="fas fa-hourglass-half"></i><span>Processing print request...</span></div>');
+
+    if($('input[name=printType]:checked').val() == 'image') {
+        dropZoneMode = 'print';
+        imageDropZone.processQueue();
+        return;
+    }
+
     $.ajax({
         type:     'POST',
         dataType: 'json',
@@ -345,6 +353,13 @@ preview()
 
 var imageDropZone;
 Dropzone.options.myAwesomeDropzone = {
+    url: function() {
+        if (dropZoneMode == 'preview') {
+            return "/api/preview?return_format=base64";
+        } else {
+            return "/api/print";
+        }
+    },
     paramName: "image",
     acceptedFiles: 'image/*',
     maxFiles: 1,
@@ -369,7 +384,11 @@ Dropzone.options.myAwesomeDropzone = {
     },
 
     success: function(file, response) {
-        updatePreview(response);
+        if (dropZoneMode == 'preview') {
+            updatePreview(response);
+        } else {
+            setStatus(response);
+        }
         file.status = Dropzone.QUEUED;
     },
 
