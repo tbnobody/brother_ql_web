@@ -173,19 +173,19 @@
         <div class="btn-group btn-group-toggle btn-block" data-toggle="buttons">
             <label class="btn btn-secondary active" id="printTypeText">
                 <input type="radio" name="printType" onchange="preview()" value="text" aria-label="Text" checked>
-                <span class="fas fa-font" aria-hidden="true"></span> Text
+                <span class="fas fa-font" aria-hidden="true"></span><br>Text
             </label>
             <label class="btn btn-secondary" id="printTypeQrCode">
                 <input type="radio" name="printType" onchange="preview()" value="qrcode" aria-label="Text">
-                <span class="fas fa-qrcode" aria-hidden="true"></span> QR Code
+                <span class="fas fa-qrcode" aria-hidden="true"></span><br>QR Code
             </label>
             <label class="btn btn-secondary" id="printTypeQrCodeText">
                 <input type="radio" name="printType" onchange="preview()" value="qrcode_text" aria-label="QR Code + Text">
-                <span class="fas fa-qrcode" aria-hidden="true"></span> QR Code+Text
+                <span class="fas fa-qrcode" aria-hidden="true"></span><br>QR Code+Text
             </label>
             <label class="btn btn-secondary" id="printTypeImage">
                 <input type="radio" name="printType" onchange="preview()" value="image" aria-label="Image">
-                <span class="fas fa-image" aria-hidden="true"></span> Image
+                <span class="fas fa-image" aria-hidden="true"></span><br>Image
             </label>
         </div>
 
@@ -195,7 +195,7 @@
         </fieldset>
         <fieldset class="form-group" id="groupLabelImage">
             <label style="margin-top: 10px; margin-bottom: 0">Label Image:</label>
-            <form action="/api/preview/image?return_format=base64" class="dropzone">
+            <form action="/api/preview/image?return_format=base64" class="dropzone" id="my-awesome-dropzone">
             </form>
         </fieldset>
     </div>
@@ -260,6 +260,15 @@ function formData(cut_once) {
     }
 }
 
+function updatePreview(data) {
+    $('#previewImg').attr('src', 'data:image/png;base64,' + data);
+    var img = $('#previewImg')[0];
+    img.onload = function() {
+        $('#labelWidth').html( (img.naturalWidth /300*2.54).toFixed(1));
+        $('#labelHeight').html((img.naturalHeight/300*2.54).toFixed(1));
+    };
+}
+
 function preview() {
     if ($('#labelSize option:selected').data('round') == 'True') {
         $('img#previewImg').addClass('roundPreviewImage');
@@ -291,18 +300,18 @@ function preview() {
         $('#groupLabelImage').hide();
     }
 
+    if($('input[name=printType]:checked').val() == 'image') {
+        imageDropZone.processQueue();
+        return;
+    }
+
     $.ajax({
         type:        'POST',
         url:         '/api/preview/text?return_format=base64',
         contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
         data:        formData(),
         success: function( data ) {
-            $('#previewImg').attr('src', 'data:image/png;base64,' + data);
-            var img = $('#previewImg')[0];
-            img.onload = function() {
-                $('#labelWidth').html( (img.naturalWidth /300*2.54).toFixed(1));
-                $('#labelHeight').html((img.naturalHeight/300*2.54).toFixed(1));
-            };
+            updatePreview(data);
         }
     });
 }
@@ -332,5 +341,42 @@ function print(cut_once = false) {
 }
 
 preview()
+
+
+var imageDropZone;
+Dropzone.options.myAwesomeDropzone = {
+    paramName: "image",
+    acceptedFiles: 'image/*',
+    maxFiles: 1,
+    addRemoveLinks: true,
+    autoProcessQueue: false,
+    init: function() {
+        imageDropZone = this;
+
+        this.on("addedfile", function() {
+            if (this.files[1] != null) {
+                this.removeFile(this.files[0]);
+            }
+        });
+    },
+
+    sending: function(file, xhr, data) {
+        fd = formData(false);
+
+        $.each(fd, function(key, value){
+            data.append(key, value);
+        });
+    },
+
+    success: function(file, response) {
+        updatePreview(response);
+        file.status = Dropzone.QUEUED;
+    },
+
+    accept: function(file, done) {
+        done();
+        preview();
+    }
+};
 
 {% endblock %}

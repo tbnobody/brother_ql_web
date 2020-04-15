@@ -241,6 +241,58 @@ def create_text_qrcode_label_im(text, include_text, include_qr, **kwargs):
     return im
 
 
+def convert_image_to_bw(image, threshold):
+    fn = lambda x : 255 if x > threshold else 0
+    return image.convert('L').point(fn, mode='1') # convert to greyscale
+
+
+def create_label_upload(file, **kwargs):
+    image = file_to_image(file)
+    image = convert_image_to_bw(image, 200)
+
+    image_width, image_height = image.size
+
+    label_type = kwargs['kind']
+    width, height = kwargs['width'], kwargs['height']
+    if kwargs['orientation'] == 'standard':
+        if label_type in (ENDLESS_LABEL,):
+            height = image_height + kwargs['margin_top'] + kwargs['margin_bottom']
+    elif kwargs['orientation'] == 'rotated':
+        if label_type in (ENDLESS_LABEL,):
+            width = image_width + kwargs['margin_left'] + kwargs['margin_right']
+
+    if kwargs['orientation'] == 'standard':
+        horizontal_offset_image = (width - image_width)//2
+        vertical_offset_image = kwargs['margin_top']
+
+    elif kwargs['orientation'] == 'rotated':
+        horizontal_offset_image = kwargs['margin_left']
+        vertical_offset_image = (height - image_height)//2
+
+    image_offset = horizontal_offset_image, vertical_offset_image
+
+    im = Image.new('RGB', (width, height), 'white')
+    im.paste(image, image_offset)
+
+    return im
+
+
+@get('/api/preview/image')
+@post('/api/preview/image')
+def get_preview_from_image():
+    context = get_label_context(request)
+    im = create_label_upload(request.files.get('image'), **context)
+
+    return_format = request.query.get('return_format', 'png')
+    if return_format == 'base64':
+        import base64
+        response.set_header('Content-type', 'text/plain')
+        return base64.b64encode(image_to_png_bytes(im))
+    else:
+        response.set_header('Content-type', 'image/png')
+        return image_to_png_bytes(im)
+
+
 @get('/api/preview/text')
 @post('/api/preview/text')
 def get_preview_image():
@@ -261,6 +313,13 @@ def image_to_png_bytes(im):
     im.save(image_buffer, format="PNG")
     image_buffer.seek(0)
     return image_buffer.read()
+
+
+def file_to_image(file):
+    s = BytesIO()
+    file.save(s)
+    im = Image.open(s)
+    return im
 
 
 @post('/api/print/text')
