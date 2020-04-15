@@ -247,10 +247,13 @@ def convert_image_to_bw(image, threshold):
 
 
 def create_label_upload(file, **kwargs):
-    image = file_to_image(file)
-    image = convert_image_to_bw(image, 200)
-
-    image_width, image_height = image.size
+    try:
+        image = file_to_image(file)
+        image = convert_image_to_bw(image, 200)
+        image_width, image_height = image.size
+    except AttributeError:
+        image = None
+        image_width, image_height = (0, 0)
 
     label_type = kwargs['kind']
     width, height = kwargs['width'], kwargs['height']
@@ -272,7 +275,9 @@ def create_label_upload(file, **kwargs):
     image_offset = horizontal_offset_image, vertical_offset_image
 
     im = Image.new('RGB', (width, height), 'white')
-    im.paste(image, image_offset)
+
+    if image is not None:
+        im.paste(image, image_offset)
 
     return im
 
