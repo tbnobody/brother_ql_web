@@ -11,6 +11,7 @@ import random
 import json
 import argparse
 import qrcode
+import os
 from io import BytesIO
 
 from bottle import run, route, get, post, response, request, jinja2_view as view, static_file, redirect
@@ -117,8 +118,13 @@ def get_label_context(request):
     context['qrcode_correction'] = qrSwitch.get(context['qrcode_correction'], qrcode.constants.ERROR_CORRECT_L)
 
     try:
-        context['upload_image'] = file_to_image(request.files.get('image', None))
-        context['upload_image'] = convert_image_to_bw(context['upload_image'], 200)
+        image = request.files.get('image', None)
+        name, ext = os.path.splitext(image.filename)
+        if ext.lower() in ('.png', '.jpg', '.jpeg'):
+            image = file_to_image(image)
+            context['upload_image'] = convert_image_to_bw(image, 200)
+        else:
+            context['upload_image'] = None
     except AttributeError:
         context['upload_image'] = None
 
