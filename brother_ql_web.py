@@ -12,11 +12,9 @@ import json
 import argparse
 import qrcode
 import os
-from io import BytesIO
 
 from bottle import run, route, get, post, response, request, jinja2_view as view, static_file, redirect
 from PIL import Image, ImageDraw, ImageFont
-from pdf2image import convert_from_bytes
 
 from brother_ql.devicedependent import models, label_type_specs, label_sizes
 from brother_ql.devicedependent import ENDLESS_LABEL, DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL
@@ -24,6 +22,7 @@ from brother_ql import BrotherQLRaster, create_label
 from brother_ql.backends import backend_factory, guess_backend
 
 from font_helpers import get_fonts
+from utils import convert_image_to_bw, pdffile_to_image, imgfile_to_image, image_to_png_bytes
 
 logger = logging.getLogger(__name__)
 
@@ -123,19 +122,21 @@ def get_label_context(request):
     }
     context['qrcode_correction'] = qrSwitch.get(context['qrcode_correction'], qrcode.constants.ERROR_CORRECT_L)
 
-    try:
-        image = request.files.get('image', None)
-        name, ext = os.path.splitext(image.filename)
-        if ext.lower() in ('.png', '.jpg', '.jpeg'):
-            image = file_to_image(image)
-            context['upload_image'] = convert_image_to_bw(image, 200)
-        elif ext.lower() in ('.pdf'):
-            image = pdffile_to_image(image)
-            context['upload_image'] = convert_image_to_bw(image, 200)
-        else:
-            context['upload_image'] = None
-    except AttributeError:
-        context['upload_image'] = None
+    def get_uploaded_image(image):
+        try:
+            name, ext = os.path.splitext(image.filename)
+            if ext.lower() in ('.png', '.jpg', '.jpeg'):
+                image = imgfile_to_image(image)
+                return convert_image_to_bw(image, 200)
+            elif ext.lower() in ('.pdf'):
+                image = pdffile_to_image(image, DEFAULT_DPI)
+                return convert_image_to_bw(image, 200)
+            else:
+                return None
+        except AttributeError:
+            return None
+
+    context['upload_image'] = get_uploaded_image(request.files.get('image', None))
 
     def get_font_path(font_family_name, font_style_name):
         try:
@@ -280,11 +281,6 @@ def assemble_label_im(text, image, include_text, **kwargs):
     return im
 
 
-def convert_image_to_bw(image, threshold):
-    fn = lambda x : 255 if x > threshold else 0
-    return image.convert('L').point(fn, mode='1') # convert to greyscale
-
-
 @get('/api/preview')
 @post('/api/preview')
 def get_preview_from_image():
@@ -299,31 +295,6 @@ def get_preview_from_image():
     else:
         response.set_header('Content-type', 'image/png')
         return image_to_png_bytes(im)
-
-
-def image_to_png_bytes(im):
-    image_buffer = BytesIO()
-    im.save(image_buffer, format="PNG")
-    image_buffer.seek(0)
-    return image_buffer.read()
-
-
-def file_to_image(file):
-    s = BytesIO()
-    file.save(s)
-    im = Image.open(s)
-    return im
-
-
-def pdffile_to_image(file):
-    s = BytesIO()
-    file.save(s)
-    s.seek(0)
-    im = convert_from_bytes(
-        s.read(),
-        dpi = DEFAULT_DPI
-    )[0]
-    return im
 
 
 @post('/api/print')
