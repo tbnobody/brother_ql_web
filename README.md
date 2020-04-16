@@ -13,6 +13,9 @@ There's also a screenshot showing [how it looks on a smartphone](./static/images
 * Print text as QR Code
     * Add text to QR Code
     * Change size of QR Code
+* Upload files to print
+    * .pdf, .png and .jpg files
+    * automatically convertion to black/white image
 * Change print color for black/white/red labels
 * Print lables multiple times
     * Cut every label
