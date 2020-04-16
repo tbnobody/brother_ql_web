@@ -36,6 +36,9 @@ LABEL_SIZES = [(
 
 LINE_SPACINGS = (100, 150, 200, 250, 300)
 
+# Don't change as brother_ql is using this DPI value
+DEFAULT_DPI = 300
+
 try:
     with open('config.json', encoding='utf-8') as fh:
         CONFIG = json.load(fh)
@@ -66,7 +69,9 @@ def labeldesigner():
             'default_orientation': CONFIG['LABEL']['DEFAULT_ORIENTATION'],
             'default_qr_size': CONFIG['LABEL']['DEFAULT_QR_SIZE'],
             'line_spacings': LINE_SPACINGS,
-            'default_line_spacing': CONFIG['LABEL']['DEFAULT_LINE_SPACING']}
+            'default_line_spacing': CONFIG['LABEL']['DEFAULT_LINE_SPACING'],
+            'default_dpi': DEFAULT_DPI
+    }
 
 
 def get_label_context(request):
@@ -316,7 +321,7 @@ def pdffile_to_image(file):
     s.seek(0)
     im = convert_from_bytes(
         s.read(),
-        dpi = 300
+        dpi = DEFAULT_DPI
     )[0]
     return im
 

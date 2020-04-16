@@ -264,8 +264,8 @@ function updatePreview(data) {
     $('#previewImg').attr('src', 'data:image/png;base64,' + data);
     var img = $('#previewImg')[0];
     img.onload = function() {
-        $('#labelWidth').html( (img.naturalWidth /300*2.54).toFixed(1));
-        $('#labelHeight').html((img.naturalHeight/300*2.54).toFixed(1));
+        $('#labelWidth').html( (img.naturalWidth /{{default_dpi}}*2.54).toFixed(1));
+        $('#labelHeight').html((img.naturalHeight/{{default_dpi}}*2.54).toFixed(1));
     };
 }
 
