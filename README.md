@@ -25,7 +25,7 @@ There's also a screenshot showing [how it looks on a smartphone](./static/images
 This installation manual requires only a default installation of Debian 10 (Buster).
 Install prerequisites:
 
-    apt install fontconfig python3-venv python3-pip git
+    apt install fontconfig python3-venv python3-pip git poppler-utils
 
 Get the code:
 

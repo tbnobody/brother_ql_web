@@ -2,3 +2,4 @@ brother_ql
 bottle
 jinja2
 qrcode
+pdf2image
