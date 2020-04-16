@@ -16,6 +16,7 @@ from io import BytesIO
 
 from bottle import run, route, get, post, response, request, jinja2_view as view, static_file, redirect
 from PIL import Image, ImageDraw, ImageFont
+from pdf2image import convert_from_bytes
 
 from brother_ql.devicedependent import models, label_type_specs, label_sizes
 from brother_ql.devicedependent import ENDLESS_LABEL, DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL
@@ -122,6 +123,9 @@ def get_label_context(request):
         name, ext = os.path.splitext(image.filename)
         if ext.lower() in ('.png', '.jpg', '.jpeg'):
             image = file_to_image(image)
+            context['upload_image'] = convert_image_to_bw(image, 200)
+        elif ext.lower() in ('.pdf'):
+            image = pdffile_to_image(image)
             context['upload_image'] = convert_image_to_bw(image, 200)
         else:
             context['upload_image'] = None
@@ -303,6 +307,17 @@ def file_to_image(file):
     s = BytesIO()
     file.save(s)
     im = Image.open(s)
+    return im
+
+
+def pdffile_to_image(file):
+    s = BytesIO()
+    file.save(s)
+    s.seek(0)
+    im = convert_from_bytes(
+        s.read(),
+        dpi = 300
+    )[0]
     return im
 
 
