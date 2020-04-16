@@ -376,6 +376,7 @@ Dropzone.options.myAwesomeDropzone = {
     },
 
     sending: function(file, xhr, data) {
+        // append all parameters to the request
         fd = formData(false);
 
         $.each(fd, function(key, value){
@@ -384,6 +385,7 @@ Dropzone.options.myAwesomeDropzone = {
     },
 
     success: function(file, response) {
+        // If preview or print was successfull update the previewpane or print status
         if (dropZoneMode == 'preview') {
             updatePreview(response);
         } else {
@@ -393,6 +395,7 @@ Dropzone.options.myAwesomeDropzone = {
     },
 
     accept: function(file, done) {
+        // If a valid file was added, perform the preview
         done();
         preview();
     },
