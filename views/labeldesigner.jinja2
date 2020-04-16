@@ -395,6 +395,13 @@ Dropzone.options.myAwesomeDropzone = {
     accept: function(file, done) {
         done();
         preview();
+    },
+
+    removedfile: function(file) {
+        file.previewElement.remove();
+        preview();
+        // Insert a dummy image
+        updatePreview('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=');
     }
 };
 
