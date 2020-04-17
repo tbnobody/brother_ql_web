@@ -77,6 +77,15 @@ To start the server, run `./brother_ql_web.py`. The command line parameters over
       --model {QL-500,QL-550,QL-560,QL-570,QL-580N,QL-650TD,QL-700,QL-710W,QL-720NW,QL-1050,QL-1060N}
                             The model of your printer (default: QL-500)
 
+### Automatic startup using systemd service
+
+Copy service file, reload system, enable and start the service
+
+    cp /opt/brother_ql_web/systemd/brother_ql_web.service /etc/systemd/system
+    systemctl daemon-reload
+    systemctl enable brother_ql_web
+    systemctl start brother_ql_web
+
 ### Usage
 
 Once it's running, access the web interface by opening the page with your browser.
