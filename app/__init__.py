@@ -13,7 +13,7 @@ import argparse
 import qrcode
 import os
 
-from bottle import run, route, get, post, response, request, jinja2_view as view, static_file, redirect, TEMPLATE_PATH
+from flask import Flask, render_template, request, make_response, redirect, url_for
 from PIL import Image, ImageDraw, ImageFont
 
 from brother_ql.devicedependent import models, label_type_specs, label_sizes
@@ -23,6 +23,8 @@ from brother_ql.backends import backend_factory, guess_backend
 
 from app.font_helpers import get_fonts
 from app.utils import convert_image_to_bw, pdffile_to_image, imgfile_to_image, image_to_png_bytes
+
+app = Flask(__name__)
 
 logger = logging.getLogger(__name__)
 
@@ -46,37 +48,32 @@ except FileNotFoundError as e:
         CONFIG = json.load(fh)
 
 
-@route('/')
+@app.route('/')
 def index():
-    redirect('/labeldesigner')
+    return redirect(url_for('labeldesigner'))
 
 
-@route('/static/<filename:path>')
-def serve_static(filename):
-    return static_file(filename, root='./app/static')
-
-
-@route('/labeldesigner')
-@view('labeldesigner.jinja2')
+@app.route('/labeldesigner')
 def labeldesigner():
     font_family_names = sorted(list(FONTS.keys()))
-    return {'font_family_names': font_family_names,
-            'fonts': FONTS,
-            'label_sizes': LABEL_SIZES,
-            'website': CONFIG['WEBSITE'],
-            'label': CONFIG['LABEL'],
-            'default_orientation': CONFIG['LABEL']['DEFAULT_ORIENTATION'],
-            'default_qr_size': CONFIG['LABEL']['DEFAULT_QR_SIZE'],
-            'line_spacings': LINE_SPACINGS,
-            'default_line_spacing': CONFIG['LABEL']['DEFAULT_LINE_SPACING'],
-            'default_dpi': DEFAULT_DPI
-    }
+    return render_template('labeldesigner.jinja2',
+        font_family_names = font_family_names,
+        fonts = FONTS,
+        label_sizes = LABEL_SIZES,
+        website = CONFIG['WEBSITE'],
+        label = CONFIG['LABEL'],
+        default_orientation = CONFIG['LABEL']['DEFAULT_ORIENTATION'],
+        default_qr_size = CONFIG['LABEL']['DEFAULT_QR_SIZE'],
+        line_spacings = LINE_SPACINGS,
+        default_line_spacing = CONFIG['LABEL']['DEFAULT_LINE_SPACING'],
+        default_dpi = DEFAULT_DPI
+    )
 
 
 def get_label_context(request):
     """ might raise LookupError() """
 
-    d = request.params.decode()  # UTF-8 decoded form data
+    d = request.values  # UTF-8 decoded form data
 
     default_font = list(FONTS.items())[0][0] + ' (' + list(list(FONTS.items())[0][1])[0] + ')'
 
@@ -281,24 +278,25 @@ def assemble_label_im(text, image, include_text, **kwargs):
     return im
 
 
-@get('/api/preview')
-@post('/api/preview')
+@app.route('/api/preview', methods=['POST', 'GET'])
 def get_preview_from_image():
     context = get_label_context(request)
     im = create_label_im(**context)
 
-    return_format = request.query.get('return_format', 'png')
+    return_format = request.values.get('return_format', 'png')
+
     if return_format == 'base64':
         import base64
-        response.set_header('Content-type', 'text/plain')
-        return base64.b64encode(image_to_png_bytes(im))
+        response = make_response(base64.b64encode(image_to_png_bytes(im)))
+        response.headers.set('Content-type', 'text/plain')
+        return response
     else:
-        response.set_header('Content-type', 'image/png')
-        return image_to_png_bytes(im)
+        response = make_response(image_to_png_bytes(im))
+        response.headers.set('Content-type', 'image/png')
+        return response
 
 
-@post('/api/print')
-@get('/api/print')
+@app.route('/api/print', methods=['POST', 'GET'])
 def print_text():
     """
     API to print a label
@@ -454,5 +452,4 @@ def main():
         sys.stderr.write('The default font is now set to: {family} ({style})\n'.format(
             **CONFIG['LABEL']['DEFAULT_FONTS']))
 
-    TEMPLATE_PATH.insert(0, 'app/views')
-    run(host=CONFIG['SERVER']['HOST'], port=PORT, debug=DEBUG)
+    app.run(host=CONFIG['SERVER']['HOST'], port=PORT, debug=True)

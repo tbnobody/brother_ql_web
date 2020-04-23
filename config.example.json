@@ -1,7 +1,7 @@
 {
     "SERVER": {
         "PORT": 8013,
-        "HOST": "",
+        "HOST": "0.0.0.0",
         "LOGLEVEL": "WARNING",
         "ADDITIONAL_FONT_FOLDER": false
     },

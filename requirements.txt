@@ -1,5 +1,4 @@
 brother_ql
-bottle
-jinja2
+Flask
 qrcode
 pdf2image
