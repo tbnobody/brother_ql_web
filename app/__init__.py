@@ -13,7 +13,7 @@ import argparse
 import qrcode
 import os
 
-from bottle import run, route, get, post, response, request, jinja2_view as view, static_file, redirect
+from bottle import run, route, get, post, response, request, jinja2_view as view, static_file, redirect, TEMPLATE_PATH
 from PIL import Image, ImageDraw, ImageFont
 
 from brother_ql.devicedependent import models, label_type_specs, label_sizes
@@ -21,8 +21,8 @@ from brother_ql.devicedependent import ENDLESS_LABEL, DIE_CUT_LABEL, ROUND_DIE_C
 from brother_ql import BrotherQLRaster, create_label
 from brother_ql.backends import backend_factory, guess_backend
 
-from font_helpers import get_fonts
-from utils import convert_image_to_bw, pdffile_to_image, imgfile_to_image, image_to_png_bytes
+from app.font_helpers import get_fonts
+from app.utils import convert_image_to_bw, pdffile_to_image, imgfile_to_image, image_to_png_bytes
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ def index():
 
 @route('/static/<filename:path>')
 def serve_static(filename):
-    return static_file(filename, root='./static')
+    return static_file(filename, root='./app/static')
 
 
 @route('/labeldesigner')
@@ -454,8 +454,5 @@ def main():
         sys.stderr.write('The default font is now set to: {family} ({style})\n'.format(
             **CONFIG['LABEL']['DEFAULT_FONTS']))
 
+    TEMPLATE_PATH.insert(0, 'app/views')
     run(host=CONFIG['SERVER']['HOST'], port=PORT, debug=DEBUG)
-
-
-if __name__ == "__main__":
-    main()

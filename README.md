@@ -48,14 +48,14 @@ Copy `config.example.json` to `config.json` (e.g. `cp config.example.json config
 
 ### Startup
 
-To start the server, run `./brother_ql_web.py`. The command line parameters overwrite the values configured in `config.json`. Here's its command line interface:
+To start the server, run `./run.py`. The command line parameters overwrite the values configured in `config.json`. Here's its command line interface:
 
-    usage: brother_ql_web.py [-h] [--port PORT] [--loglevel LOGLEVEL]
-                             [--font-folder FONT_FOLDER]
-                             [--default-label-size DEFAULT_LABEL_SIZE]
-                             [--default-orientation {standard,rotated}]
-                             [--model {QL-500,QL-550,QL-560,QL-570,QL-580N,QL-650TD,QL-700,QL-710W,QL-720NW,QL-1050,QL-1060N}]
-                             [printer]
+    usage: run.py [-h] [--port PORT] [--loglevel LOGLEVEL]
+                       [--font-folder FONT_FOLDER]
+                       [--default-label-size DEFAULT_LABEL_SIZE]
+                       [--default-orientation {standard,rotated}]
+                       [--model {QL-500,QL-550,QL-560,QL-570,QL-580N,QL-650TD,QL-700,QL-710W,QL-720NW,QL-1050,QL-1060N}]
+                       [printer]
 
     This is a web service to print labels on Brother QL label printers.
 

@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/opt/brother_ql_web
-ExecStart=/opt/brother_ql_web/.venv/bin/python /opt/brother_ql_web/brother_ql_web.py
+ExecStart=/opt/brother_ql_web/.venv/bin/python /opt/brother_ql_web/run.py
 Restart=on-failure
 
 [Install]
