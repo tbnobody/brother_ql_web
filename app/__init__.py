@@ -14,6 +14,7 @@ import qrcode
 import os
 
 from flask import Flask, render_template, request, make_response, redirect, url_for
+from flask_bootstrap import Bootstrap
 from PIL import Image, ImageDraw, ImageFont
 
 from brother_ql.devicedependent import models, label_type_specs, label_sizes
@@ -451,5 +452,9 @@ def main():
         CONFIG['LABEL']['DEFAULT_FONTS'] = {'family': family, 'style': style}
         sys.stderr.write('The default font is now set to: {family} ({style})\n'.format(
             **CONFIG['LABEL']['DEFAULT_FONTS']))
+
+    # initialize bootstrap
+    app.config['BOOTSTRAP_SERVE_LOCAL'] = True
+    bootstrap = Bootstrap(app)
 
     app.run(host=CONFIG['SERVER']['HOST'], port=PORT, debug=True)
