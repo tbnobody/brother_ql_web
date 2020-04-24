@@ -22,7 +22,7 @@ from brother_ql.devicedependent import ENDLESS_LABEL, DIE_CUT_LABEL, ROUND_DIE_C
 from brother_ql import BrotherQLRaster, create_label
 from brother_ql.backends import backend_factory, guess_backend
 
-from app.font_helpers import get_fonts
+from . import fonts
 from app.utils import convert_image_to_bw, pdffile_to_image, imgfile_to_image, image_to_png_bytes
 
 app = Flask(__name__)
@@ -56,10 +56,10 @@ def index():
 
 @app.route('/labeldesigner')
 def labeldesigner():
-    font_family_names = sorted(list(FONTS.keys()))
+    font_family_names = FONTS.fontlist()
     return render_template('labeldesigner.jinja2',
         font_family_names = font_family_names,
-        fonts = FONTS,
+        fonts = FONTS.fonts,
         label_sizes = LABEL_SIZES,
         website = CONFIG['WEBSITE'],
         label = CONFIG['LABEL'],
@@ -76,7 +76,7 @@ def get_label_context(request):
 
     d = request.values  # UTF-8 decoded form data
 
-    default_font = list(FONTS.items())[0][0] + ' (' + list(list(FONTS.items())[0][1])[0] + ')'
+    default_font = list(FONTS.fonts.items())[0][0] + ' (' + list(list(FONTS.fonts.items())[0][1])[0] + ')'
 
     font_family = d.get('font_family', default_font).rpartition('(')[0].strip()
     font_style  = d.get('font_family', default_font).rpartition('(')[2].rstrip(')')
@@ -141,7 +141,7 @@ def get_label_context(request):
             if font_family_name is None or font_style_name is None:
                 font_family_name = CONFIG['LABEL']['DEFAULT_FONTS']['family']
                 font_style_name =  CONFIG['LABEL']['DEFAULT_FONTS']['style']
-            font_path = FONTS[font_family_name][font_style_name]
+            font_path = FONTS.fonts[font_family_name][font_style_name]
         except KeyError:
             raise LookupError("Couln't find the font & style")
         return font_path
@@ -429,17 +429,18 @@ def main():
     if CONFIG['LABEL']['DEFAULT_SIZE'] not in label_sizes:
         parser.error("Invalid --default-label-size. Please choose on of the following:\n:" + " ".join(label_sizes))
 
-    FONTS = get_fonts()
+    FONTS = fonts.Fonts()
+    FONTS.scan_global_fonts()
     if ADDITIONAL_FONT_FOLDER:
-        FONTS.update(get_fonts(ADDITIONAL_FONT_FOLDER))
+        FONTS.scan_fonts_folder(ADDITIONAL_FONT_FOLDER)
 
-    if not FONTS:
+    if not FONTS.fonts_available():
         sys.stderr.write("Not a single font was found on your system. Please install some or use the \"--font-folder\" argument.\n")
         sys.exit(2)
 
     for font in CONFIG['LABEL']['DEFAULT_FONTS']:
         try:
-            FONTS[font['family']][font['style']]
+            FONTS.fonts[font['family']][font['style']]
             CONFIG['LABEL']['DEFAULT_FONTS'] = font
             logger.debug("Selected the following default font: {}".format(font))
             break
@@ -447,8 +448,8 @@ def main():
             pass
     if CONFIG['LABEL']['DEFAULT_FONTS'] is None:
         sys.stderr.write('Could not find any of the default fonts. Choosing a random one.\n')
-        family = random.choice(list(FONTS.keys()))
-        style  = random.choice(list(FONTS[family].keys()))
+        family = random.choice(list(FONTS.fonts.keys()))
+        style  = random.choice(list(FONTS.fonts[family].keys()))
         CONFIG['LABEL']['DEFAULT_FONTS'] = {'family': family, 'style': style}
         sys.stderr.write('The default font is now set to: {family} ({style})\n'.format(
             **CONFIG['LABEL']['DEFAULT_FONTS']))

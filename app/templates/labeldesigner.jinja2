@@ -67,7 +67,7 @@
                             <label for="fontFamily" style="margin-bottom: 0">Font Family:</label>
                             <select class="form-control" id="fontFamily" onChange="preview()">
                                 {% for font_family_name in font_family_names %}
-                                    {% for font_style in fonts[font_family_name].keys() %}
+                                    {% for font_style in fonts[font_family_name] %}
                                         <option {% if label['DEFAULT_FONTS']['style'] == font_style and label['DEFAULT_FONTS']['family'] == font_family_name %}selected{% endif %}>{{font_family_name}} ({{ font_style }})</option>
                                     {% endfor %}
                                 {% endfor %}
