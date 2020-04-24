@@ -56,10 +56,8 @@ def index():
 
 @app.route('/labeldesigner')
 def labeldesigner():
-    font_family_names = FONTS.fontlist()
     return render_template('labeldesigner.jinja2',
-        font_family_names = font_family_names,
-        fonts = FONTS.fonts,
+        font_family_names = FONTS.fontlist(),
         label_sizes = LABEL_SIZES,
         website = CONFIG['WEBSITE'],
         label = CONFIG['LABEL'],
@@ -76,15 +74,11 @@ def get_label_context(request):
 
     d = request.values  # UTF-8 decoded form data
 
-    default_font = list(FONTS.fonts.items())[0][0] + ' (' + list(list(FONTS.fonts.items())[0][1])[0] + ')'
-
-    font_family = d.get('font_family', default_font).rpartition('(')[0].strip()
-    font_style  = d.get('font_family', default_font).rpartition('(')[2].rstrip(')')
     context = {
         'text':          d.get('text', None),
         'font_size': int(d.get('font_size', 100)),
-        'font_family':   font_family,
-        'font_style':    font_style,
+        'font_family':   d.get('font_family'),
+        'font_style':    d.get('font_style'),
         'label_size':    d.get('label_size', "62"),
         'kind':          label_type_specs[d.get('label_size', "62")]['kind'],
         'margin':    int(d.get('margin', 10)),
@@ -278,6 +272,10 @@ def assemble_label_im(text, image, include_text, **kwargs):
 
     return im
 
+@app.route('/api/font/styles', methods=['POST', 'GET'])
+def get_font_styles():
+    font = request.values.get('font', CONFIG['LABEL']['DEFAULT_FONTS']['family'])
+    return FONTS.fonts[font]
 
 @app.route('/api/preview', methods=['POST', 'GET'])
 def get_preview_from_image():
@@ -439,12 +437,11 @@ def main():
         sys.exit(2)
 
     for font in CONFIG['LABEL']['DEFAULT_FONTS']:
-        try:
-            FONTS.fonts[font['family']][font['style']]
+        if font['family'] in FONTS.fonts.keys() and font['style'] in FONTS.fonts[font['family']].keys():
             CONFIG['LABEL']['DEFAULT_FONTS'] = font
             logger.debug("Selected the following default font: {}".format(font))
             break
-        except:
+        else:
             pass
     if CONFIG['LABEL']['DEFAULT_FONTS'] is None:
         sys.stderr.write('Could not find any of the default fonts. Choosing a random one.\n')

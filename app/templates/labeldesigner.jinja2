@@ -65,13 +65,16 @@
                     <div id="collapse2" class="collapse show" aria-labelledby="heading2" data-parent="#accordion">
                         <div class="card-body">
                             <label for="fontFamily" style="margin-bottom: 0">Font Family:</label>
-                            <select class="form-control" id="fontFamily" onChange="preview()">
+                            <select class="form-control" id="fontFamily" onChange="updateStyles()">
                                 {% for font_family_name in font_family_names %}
-                                    {% for font_style in fonts[font_family_name] %}
-                                        <option {% if label['DEFAULT_FONTS']['style'] == font_style and label['DEFAULT_FONTS']['family'] == font_family_name %}selected{% endif %}>{{font_family_name}} ({{ font_style }})</option>
-                                    {% endfor %}
+                                    <option {% if label['DEFAULT_FONTS']['family'] == font_family_name %}selected{% endif %}>{{font_family_name}}</option>
                                 {% endfor %}
                             </select>
+
+                            <label for="fontStyle" style="margin-top: 10px; margin-bottom: 0">Font Style:</label>
+                            <select class="form-control" id="fontStyle" onChange="preview()">
+                            </select>
+
                             <label for="fontSize" style="margin-top: 10px; margin-bottom: 0">Font Size:</label>
                             <input id="fontSize" class="form-control" type="number" min="1" value="{{ label['DEFAULT_FONT_SIZE'] }}" onChange="preview()" required>
 
@@ -242,6 +245,7 @@ function formData(cut_once) {
     return {
         text:        text,
         font_family: $('#fontFamily option:selected').text(),
+        font_style:  $('#fontStyle option:selected').text(),
         font_size:   $('#fontSize').val(),
         label_size:  $('#labelSize option:selected').val(),
         align:       $('input[name=fontAlign]:checked').val(),
@@ -267,6 +271,29 @@ function updatePreview(data) {
         $('#labelWidth').html( (img.naturalWidth /{{default_dpi}}*2.54).toFixed(1));
         $('#labelHeight').html((img.naturalHeight/{{default_dpi}}*2.54).toFixed(1));
     };
+}
+
+function updateStyles() {
+    font_familiy = $('#fontFamily option:selected').text()
+
+    $.ajax({
+        type:        'POST',
+        url:         '/api/font/styles',
+        contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+        data:        {font: font_familiy},
+        success: function( data ) {
+            var styleSelect = $('#fontStyle');
+            styleSelect.empty();
+            $.each(data, function (key, value) {
+                styleSelect.append($("<option></option>")
+                    .attr("value", key).text(key));
+                if ('Book,Regular'.includes(key)) {
+                    styleSelect.val(key);
+                }
+            });
+            styleSelect.trigger("change");
+        }
+    });
 }
 
 function preview() {
@@ -348,6 +375,7 @@ function print(cut_once = false) {
     });
 }
 
+updateStyles();
 preview()
 
 
