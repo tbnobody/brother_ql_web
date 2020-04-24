@@ -31,11 +31,11 @@
 
                             <label for="orientation" class="control-label input-group" style="margin-top: 10px; margin-bottom: 0">Label Orientation:</label>
                             <div class="btn-group btn-group-toggle btn-block" data-toggle="buttons">
-                                <label class="btn btn-secondary" id="orientation_standard">
+                                <label class="btn btn-secondary {% if default_orientation == 'standard' %}active{% endif %}" id="orientation_standard">
                                     <input type="radio" name="orientation" onchange="preview()" value="standard" aria-label="Standard" {% if default_orientation == 'standard' %}checked{% endif %}>
                                     <span class="fas fa-ruler-horizontal" aria-hidden="true"> Standard
                                 </label>
-                                <label class="btn btn-secondary" id="orientation_rotated">
+                                <label class="btn btn-secondary {% if default_orientation == 'rotated' %}active{% endif %}" id="orientation_rotated">
                                     <input type="radio" name="orientation" onchange="preview()" value="rotated" aria-label="Rotated" {% if default_orientation == 'rotated' %}checked{% endif %}>
                                     <span class="fas fa-ruler-vertical" aria-hidden="true"> Rotated
                                 </label>
