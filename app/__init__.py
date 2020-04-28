@@ -349,16 +349,16 @@ def print_text():
             cut=cut,
             rotate=rotate)
 
-        if not DEBUG:
-            try:
-                be = BACKEND_CLASS(CONFIG['PRINTER']['PRINTER'])
-                be.write(qlr.data)
-                be.dispose()
-                del be
-            except Exception as e:
-                return_dict['message'] = str(e)
-                logger.warning('Exception happened: %s', e)
-                return return_dict
+    if not DEBUG:
+        try:
+            be = BACKEND_CLASS(CONFIG['PRINTER']['PRINTER'])
+            be.write(qlr.data)
+            be.dispose()
+            del be
+        except Exception as e:
+            return_dict['message'] = str(e)
+            logger.warning('Exception happened: %s', e)
+            return return_dict
 
     return_dict['success'] = True
     if DEBUG:
