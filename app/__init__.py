@@ -135,4 +135,7 @@ def main():
     from app.labeldesigner import bp as labeldesigner_bp
     app.register_blueprint(labeldesigner_bp)
 
+    from app.errors import bp as errors_bp
+    app.register_blueprint(errors_bp)
+
     app.run(host=CONFIG['SERVER']['HOST'], port=PORT, debug=True)
