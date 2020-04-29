@@ -28,7 +28,7 @@ LABEL_SIZES = [(
 
 @bp.route('/labeldesigner')
 def labeldesigner():
-    return render_template('labeldesigner.jinja2',
+    return render_template('labeldesigner.html',
                            font_family_names=FONTS.fontlist(),
                            label_sizes=LABEL_SIZES,
                            website=CONFIG['WEBSITE'],
