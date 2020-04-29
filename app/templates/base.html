@@ -30,12 +30,14 @@
     <link rel="stylesheet" href="/static/css/custom.css">
 {% endblock styles %}
 
-{% block title %}{{website['HTML_TITLE']}} | Brother QL{% endblock %}
+{% block title %}
+{% if website %}{{ website['HTML_TITLE'] }}{% else %}Label Designer{% endif %} | Brother QL
+{% endblock %}
 
 {% block navbar %}
     <nav class="navbar navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="/">{{website['PAGE_TITLE']}}</a>
+            <a class="navbar-brand" href="/">{% if website %}{{ website['HTML_TITLE'] }}{% else %}Label Designer{% endif %}</a>
         </div>
     </nav>
     <div class="jumbotron">
