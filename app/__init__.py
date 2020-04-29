@@ -35,7 +35,7 @@ except FileNotFoundError as e:
 
 @app.route('/')
 def index():
-    return redirect(url_for('labeldesigner'))
+    return redirect(url_for('labeldesigner.labeldesigner'))
 
 
 def main():
