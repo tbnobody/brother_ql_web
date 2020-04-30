@@ -40,6 +40,13 @@ def index():
 
 def create_app():
     main()
+
+    from app.labeldesigner import bp as labeldesigner_bp
+    app.register_blueprint(labeldesigner_bp)
+
+    from app.errors import bp as errors_bp
+    app.register_blueprint(errors_bp)
+
     return app
 
 
@@ -136,12 +143,6 @@ def main():
     # initialize bootstrap
     app.config['BOOTSTRAP_SERVE_LOCAL'] = True
     bootstrap = Bootstrap(app)
-
-    from app.labeldesigner import bp as labeldesigner_bp
-    app.register_blueprint(labeldesigner_bp)
-
-    from app.errors import bp as errors_bp
-    app.register_blueprint(errors_bp)
 
     app.config['SERVER_HOST'] = CONFIG['SERVER']['HOST']
     app.config['SERVER_PORT'] = PORT
