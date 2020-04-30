@@ -21,6 +21,7 @@ from . import fonts
 
 
 app = Flask(__name__)
+bootstrap = Bootstrap()
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,9 @@ def index():
 
 def create_app():
     main()
+
+    app.config['BOOTSTRAP_SERVE_LOCAL'] = True
+    bootstrap.init_app(app)
 
     from app.labeldesigner import bp as labeldesigner_bp
     app.register_blueprint(labeldesigner_bp)
@@ -139,10 +143,6 @@ def main():
         CONFIG['LABEL']['DEFAULT_FONTS'] = {'family': family, 'style': style}
         sys.stderr.write('The default font is now set to: {family} ({style})\n'.format(
             **CONFIG['LABEL']['DEFAULT_FONTS']))
-
-    # initialize bootstrap
-    app.config['BOOTSTRAP_SERVE_LOCAL'] = True
-    bootstrap = Bootstrap(app)
 
     app.config['SERVER_HOST'] = CONFIG['SERVER']['HOST']
     app.config['SERVER_PORT'] = PORT
