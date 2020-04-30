@@ -38,6 +38,11 @@ def index():
     return redirect(url_for('labeldesigner.labeldesigner'))
 
 
+def create_app():
+    main()
+    return app
+
+
 def main():
     global DEBUG, FONTS, BACKEND_CLASS, CONFIG
     parser = argparse.ArgumentParser(description=__doc__)
@@ -138,4 +143,6 @@ def main():
     from app.errors import bp as errors_bp
     app.register_blueprint(errors_bp)
 
-    app.run(host=CONFIG['SERVER']['HOST'], port=PORT, debug=True)
+    app.config['SERVER_HOST'] = CONFIG['SERVER']['HOST']
+    app.config['SERVER_PORT'] = PORT
+    app.config['DEBUG'] = True

@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
+from app import create_app
 
-from app import main
-sys.exit(main())
+app = create_app()
+
+if __name__ == "__main__":
+    app.run(host = app.config['SERVER_HOST'], port = app.config['SERVER_PORT'])
