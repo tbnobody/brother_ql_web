@@ -1,6 +1,6 @@
 import os
 
-from flask import render_template, request, make_response
+from flask import current_app, render_template, request, make_response
 from PIL import Image, ImageDraw, ImageFont
 
 from brother_ql.devicedependent import label_type_specs, label_sizes
@@ -10,7 +10,7 @@ from brother_ql import BrotherQLRaster, create_label
 from app.labeldesigner import bp
 from app.utils import convert_image_to_bw, pdffile_to_image, imgfile_to_image, image_to_png_bytes
 from app import fonts
-from app import CONFIG, BACKEND_CLASS, DEBUG, FONTS
+from app import CONFIG, BACKEND_CLASS, FONTS
 
 import qrcode
 
@@ -90,7 +90,7 @@ def print_text():
         return return_dict
 
     im = create_label_im(**context)
-    if DEBUG:
+    if current_app.config['DEBUG']:
         im.save('sample-out.png')
 
     if context['kind'] == ENDLESS_LABEL:
@@ -120,7 +120,7 @@ def print_text():
             cut=cut,
             rotate=rotate)
 
-    if not DEBUG:
+    if not current_app.config['DEBUG']:
         try:
             be = BACKEND_CLASS(CONFIG['PRINTER']['PRINTER'])
             be.write(qlr.data)
@@ -132,7 +132,7 @@ def print_text():
             return return_dict
 
     return_dict['success'] = True
-    if DEBUG:
+    if current_app.config['DEBUG']:
         return_dict['data'] = str(qlr.data)
     return return_dict
 
