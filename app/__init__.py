@@ -146,4 +146,4 @@ def main():
 
     app.config['SERVER_HOST'] = CONFIG['SERVER']['HOST']
     app.config['SERVER_PORT'] = PORT
-    app.config['DEBUG'] = True
+    app.config['DEBUG'] = DEBUG
