@@ -128,7 +128,7 @@ def print_text():
             del be
         except Exception as e:
             return_dict['message'] = str(e)
-            bp.logger.warning('Exception happened: %s', e)
+            current_app.logger.warning('Exception happened: %s', e)
             return return_dict
 
     return_dict['success'] = True
