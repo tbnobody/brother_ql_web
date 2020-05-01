@@ -21,11 +21,6 @@ app = Flask(__name__, instance_relative_config=True)
 bootstrap = Bootstrap()
 
 
-@app.route('/')
-def index():
-    return redirect(url_for('labeldesigner.labeldesigner'))
-
-
 def create_app(config_class=Config):
     app.config.from_object(config_class)
     app.config.from_pyfile('application.py', silent=True)

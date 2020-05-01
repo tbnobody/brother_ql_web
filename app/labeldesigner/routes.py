@@ -26,8 +26,8 @@ LABEL_SIZES = [(
 ) for name in label_sizes]
 
 
-@bp.route('/labeldesigner')
-def labeldesigner():
+@bp.route('/')
+def index():
     return render_template('labeldesigner.html',
                            font_family_names=FONTS.fontlist(),
                            label_sizes=LABEL_SIZES,
