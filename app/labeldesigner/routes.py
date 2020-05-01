@@ -91,8 +91,6 @@ def print_text():
         return return_dict
 
     im = create_label_im(**context)
-    if current_app.config['DEBUG']:
-        im.save('sample-out.png')
 
     if context['kind'] == ENDLESS_LABEL:
         rotate = 0 if context['orientation'] == 'standard' else 90
@@ -121,20 +119,17 @@ def print_text():
             cut=cut,
             rotate=rotate)
 
-    if not current_app.config['DEBUG']:
-        try:
-            be = BACKEND_CLASS(current_app.config['PRINTER_PRINTER'])
-            be.write(qlr.data)
-            be.dispose()
-            del be
-        except Exception as e:
-            return_dict['message'] = str(e)
-            current_app.logger.warning('Exception happened: %s', e)
-            return return_dict
+    try:
+        be = BACKEND_CLASS(current_app.config['PRINTER_PRINTER'])
+        be.write(qlr.data)
+        be.dispose()
+        del be
+    except Exception as e:
+        return_dict['message'] = str(e)
+        current_app.logger.warning('Exception happened: %s', e)
+        return return_dict
 
     return_dict['success'] = True
-    if current_app.config['DEBUG']:
-        return_dict['data'] = str(qlr.data)
     return return_dict
 
 
