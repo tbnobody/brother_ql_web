@@ -23,3 +23,7 @@ textarea#labelText {
 label {
     font-weight: 700;
 }
+
+.navbar {
+    margin-bottom: 20px;
+}
