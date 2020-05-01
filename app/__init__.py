@@ -8,7 +8,7 @@ This is a web service to print labels on Brother QL label printers.
 import sys
 import random
 
-from flask import Flask, redirect, url_for
+from flask import Flask
 from flask_bootstrap import Bootstrap
 
 from brother_ql.backends import backend_factory, guess_backend
