@@ -268,7 +268,7 @@ function updateStyles() {
 
     $.ajax({
         type:        'POST',
-        url:         '/api/font/styles',
+        url:         '{{url_for('.get_font_styles')}}',
         contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
         data:        {font: font_familiy},
         success: function( data ) {
@@ -325,7 +325,7 @@ function preview() {
 
     $.ajax({
         type:        'POST',
-        url:         '/api/preview?return_format=base64',
+        url:         '{{url_for('.get_preview_from_image')}}?return_format=base64',
         contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
         data:        formData(),
         success: function( data ) {
@@ -359,7 +359,7 @@ function print(cut_once = false) {
         type:     'POST',
         dataType: 'json',
         data:     formData(cut_once),
-        url:      '/api/print',
+        url:      '{{url_for('.print_text')}}',
         success:  setStatus,
         error:    setStatus
     });
@@ -373,9 +373,9 @@ var imageDropZone;
 Dropzone.options.myAwesomeDropzone = {
     url: function() {
         if (dropZoneMode == 'preview') {
-            return "/api/preview?return_format=base64";
+            return "{{url_for('.get_preview_from_image')}}?return_format=base64";
         } else {
-            return "/api/print";
+            return "{{url_for('.print_text')}}";
         }
     },
     paramName: "image",
