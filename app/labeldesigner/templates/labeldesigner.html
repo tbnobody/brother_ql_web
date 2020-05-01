@@ -4,12 +4,6 @@
 {{ title }}
 {% endblock %}
 
-{% block jumbotron %}
-<h1>{{ website['PAGE_TITLE'] }}</h1>
-<p>{{ website['PAGE_HEADLINE'] }}</p>
-<!--<p><a class="btn btn-primary btn-lg" href="#" role="button">History of printed labels</a></p>-->
-{% endblock %}
-
 {% block app_content %}
 <div class="row">
     <div class="col-md-4">
@@ -26,7 +20,7 @@
                         <div class="card-body">
                             <label for="labelSize" style="margin-bottom: 0">Label Size:</label>
                             <select class="form-control" id="labelSize" onChange="preview()">
-                                {% for label_size in label_sizes %}<option value="{{label_size[0]}}" data-round="{{label_size[2]}}" {% if label['DEFAULT_SIZE'] == label_size[0] %}selected{% endif %}>{{label_size[1]}}</option>{% endfor %}
+                                {% for label_size in label_sizes %}<option value="{{label_size[0]}}" data-round="{{label_size[2]}}" {% if default_label_size == label_size[0] %}selected{% endif %}>{{label_size[1]}}</option>{% endfor %}
                             </select>
 
                             <label for="orientation" class="control-label input-group" style="margin-top: 10px; margin-bottom: 0">Label Orientation:</label>
@@ -67,7 +61,7 @@
                             <label for="fontFamily" style="margin-bottom: 0">Font Family:</label>
                             <select class="form-control" id="fontFamily" onChange="updateStyles()">
                                 {% for font_family_name in font_family_names %}
-                                    <option {% if label['DEFAULT_FONTS']['family'] == font_family_name %}selected{% endif %}>{{font_family_name}}</option>
+                                    <option {% if default_font_family == font_family_name %}selected{% endif %}>{{font_family_name}}</option>
                                 {% endfor %}
                             </select>
 
@@ -76,7 +70,7 @@
                             </select>
 
                             <label for="fontSize" style="margin-top: 10px; margin-bottom: 0">Font Size:</label>
-                            <input id="fontSize" class="form-control" type="number" min="1" value="{{ label['DEFAULT_FONT_SIZE'] }}" onChange="preview()" required>
+                            <input id="fontSize" class="form-control" type="number" min="1" value="{{ default_font_size }}" onChange="preview()" required>
 
                             <label for="fontAlign" class="control-label input-group" style="margin-top: 10px; margin-bottom: 0">Font Alignment:</label>
                             <div class="btn-group btn-group-toggle" data-toggle="buttons">

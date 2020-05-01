@@ -9,8 +9,7 @@ from brother_ql import BrotherQLRaster, create_label
 
 from app.labeldesigner import bp
 from app.utils import convert_image_to_bw, pdffile_to_image, imgfile_to_image, image_to_png_bytes
-from app import fonts
-from app import CONFIG, BACKEND_CLASS, FONTS
+from app import BACKEND_CLASS, FONTS
 
 import qrcode
 
@@ -26,17 +25,19 @@ LABEL_SIZES = [(
         ROUND_DIE_CUT_LABEL,))  # True if round label
 ) for name in label_sizes]
 
+
 @bp.route('/labeldesigner')
 def labeldesigner():
     return render_template('labeldesigner.html',
                            font_family_names=FONTS.fontlist(),
                            label_sizes=LABEL_SIZES,
-                           website=CONFIG['WEBSITE'],
-                           label=CONFIG['LABEL'],
-                           default_orientation=CONFIG['LABEL']['DEFAULT_ORIENTATION'],
-                           default_qr_size=CONFIG['LABEL']['DEFAULT_QR_SIZE'],
+                           default_label_size=current_app.config['LABEL_DEFAULT_SIZE'],
+                           default_font_size=current_app.config['LABEL_DEFAULT_SIZE'],
+                           default_orientation=current_app.config['LABEL_DEFAULT_FONT_SIZE'],
+                           default_qr_size=current_app.config['LABEL_DEFAULT_QR_SIZE'],
+                           default_font_family=current_app.config['LABEL_DEFAULT_FONT_FAMILY'],
                            line_spacings=LINE_SPACINGS,
-                           default_line_spacing=CONFIG['LABEL']['DEFAULT_LINE_SPACING'],
+                           default_line_spacing=current_app.config['LABEL_DEFAULT_LINE_SPACING'],
                            default_dpi=DEFAULT_DPI
                            )
 
@@ -44,7 +45,7 @@ def labeldesigner():
 @bp.route('/api/font/styles', methods=['POST', 'GET'])
 def get_font_styles():
     font = request.values.get(
-        'font', CONFIG['LABEL']['DEFAULT_FONTS']['family'])
+        'font', current_app.config['LABEL_DEFAULT_FONT_FAMILY'])
     return FONTS.fonts[font]
 
 
@@ -98,7 +99,7 @@ def print_text():
     elif context['kind'] in (ROUND_DIE_CUT_LABEL, DIE_CUT_LABEL):
         rotate = 'auto'
 
-    qlr = BrotherQLRaster(CONFIG['PRINTER']['MODEL'])
+    qlr = BrotherQLRaster(current_app.config['PRINTER_MODEL'])
     red = False
     if 'red' in context['label_size']:
         red = True
@@ -122,7 +123,7 @@ def print_text():
 
     if not current_app.config['DEBUG']:
         try:
-            be = BACKEND_CLASS(CONFIG['PRINTER']['PRINTER'])
+            be = BACKEND_CLASS(current_app.config['PRINTER_PRINTER'])
             be.write(qlr.data)
             be.dispose()
             del be
@@ -205,8 +206,8 @@ def get_label_context(request):
     def get_font_path(font_family_name, font_style_name):
         try:
             if font_family_name is None or font_style_name is None:
-                font_family_name = CONFIG['LABEL']['DEFAULT_FONTS']['family']
-                font_style_name = CONFIG['LABEL']['DEFAULT_FONTS']['style']
+                font_family_name = current_app.config['LABEL_DEFAULT_FONT_FAMILY']
+                font_style_name = current_app.config['LABEL_DEFAULT_FONT_STYLE']
             font_path = FONTS.fonts[font_family_name][font_style_name]
         except KeyError:
             raise LookupError("Couln't find the font & style")
