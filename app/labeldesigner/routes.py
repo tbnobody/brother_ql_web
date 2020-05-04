@@ -4,15 +4,13 @@ from flask import current_app, render_template, request, make_response
 
 from brother_ql.devicedependent import label_type_specs, label_sizes
 from brother_ql.devicedependent import ENDLESS_LABEL, DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL
-from brother_ql import BrotherQLRaster, create_label
 
 from app.labeldesigner import bp
 from app.utils import convert_image_to_bw, pdffile_to_image, imgfile_to_image, image_to_png_bytes
-from app import BACKEND_CLASS, FONTS
-
-import qrcode
+from app import FONTS
 
 from .label import SimpleLabel, LabelContent, LabelOrientation, LabelType
+from .printer import PrinterQueue
 
 LINE_SPACINGS = (100, 150, 200, 250, 300)
 
@@ -82,62 +80,44 @@ def print_text():
     return_dict = {'success': False}
 
     try:
-        context = get_label_context(request)
+        printer = create_printer_from_request(request)
         label = create_label_from_request(request)
-    except LookupError as e:
-        return_dict['error'] = e.msg
-        return return_dict
-
-    if context['text'] is None:
-        return_dict['error'] = 'Please provide the text for the label'
-        return return_dict
-
-    im = label.generate()
-
-    if context['kind'] == ENDLESS_LABEL:
-        rotate = 0 if context['orientation'] == 'standard' else 90
-    elif context['kind'] in (ROUND_DIE_CUT_LABEL, DIE_CUT_LABEL):
-        rotate = 'auto'
-
-    qlr = BrotherQLRaster(current_app.config['PRINTER_MODEL'])
-    red = False
-    if 'red' in context['label_size']:
-        red = True
-
-    for cnt in range(1, context['print_count']+1):
-        if context['cut_once'] == False:
-            cut = True
-        elif context['cut_once'] == True and cnt == context['print_count']:
-            cut = True
-        else:
-            cut = False
-
-        create_label(
-            qlr,
-            im,
-            context['label_size'],
-            red=red,
-            threshold=context['threshold'],
-            cut=cut,
-            rotate=rotate)
-
-    try:
-        be = BACKEND_CLASS(current_app.config['PRINTER_PRINTER'])
-        be.write(qlr.data)
-        be.dispose()
-        del be
+        print_count = int(request.values.get('print_count', 1))
+        cut_once = int(request.values.get('cut_once', 0)) == 1
     except Exception as e:
         return_dict['message'] = str(e)
-        current_app.logger.warning('Exception happened: %s', e)
+        current_app.logger.error('Exception happened: %s', e)
+        return return_dict
+
+    printer.add_label_to_queue(label, print_count, cut_once)
+
+    try:
+        printer.process_queue()
+    except Exception as e:
+        return_dict['message'] = str(e)
+        current_app.logger.error('Exception happened: %s', e)
         return return_dict
 
     return_dict['success'] = True
     return return_dict
 
 
-def create_label_from_request(request):
+def create_printer_from_request(request):
     d = request.values
     context = {
+        'label_size': d.get('label_size', '62')
+    }
+
+    return PrinterQueue(
+        model = current_app.config['PRINTER_MODEL'],
+        device_specifier = current_app.config['PRINTER_PRINTER'],
+        label_size = context['label_size']
+    )
+
+
+def create_label_from_request(request):
+    d=request.values
+    context={
         'label_size': d.get('label_size', '62'),
         'print_type': d.get('print_type', 'text'),
         'label_orientation': d.get('orientation', 'standard'),
@@ -239,23 +219,3 @@ def create_label_from_request(request):
         font_size=context['font_size'],
         line_spacing=context['line_spacing']
     )
-
-
-def get_label_context(request):
-    """ might raise LookupError() """
-
-    d = request.values  # UTF-8 decoded form data
-
-    context = {
-        'text':          d.get('text', None),
-        'label_size':    d.get('label_size', "62"),
-        'kind':          label_type_specs[d.get('label_size', "62")]['kind'],
-        'threshold': int(d.get('threshold', 70)),
-        'orientation':   d.get('orientation', 'standard'),
-        'print_count':       int(d.get('print_count', 1)),
-        'cut_once':          int(d.get('cut_once', 0))
-    }
-
-    context['cut_once'] = True if context['cut_once'] == 1 else False
-
-    return context

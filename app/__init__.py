@@ -11,8 +11,6 @@ import random
 from flask import Flask
 from flask_bootstrap import Bootstrap
 
-from brother_ql.backends import backend_factory, guess_backend
-
 from . import fonts
 from config import Config
 
@@ -44,14 +42,7 @@ def create_app(config_class=Config):
 
 
 def main(app):
-    global FONTS, BACKEND_CLASS
-
-    try:
-        selected_backend = guess_backend(app.config['PRINTER_PRINTER'])
-    except ValueError:
-        app.logger.error(
-            "Couln't guess the backend to use from the printer string descriptor")
-    BACKEND_CLASS = backend_factory(selected_backend)['backend_class']
+    global FONTS
 
     FONTS = fonts.Fonts()
     FONTS.scan_global_fonts()
