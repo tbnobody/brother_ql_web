@@ -55,11 +55,11 @@ class SimpleLabel:
         self._width = width
         self._height = height
         self.label_content = label_content
-        self._label_orientation = label_orientation
+        self.label_orientation = label_orientation
         self._label_type = label_type
         self._label_margin = label_margin
         self._fore_color = fore_color
-        self._text = text
+        self.text = text
         self._text_align = text_align
         self._qr_size = qr_size
         self.qr_correction = qr_correction
@@ -94,6 +94,14 @@ class SimpleLabel:
     def qr_correction(self, value):
         self._qr_correction = self.qr_correction_mapping.get(
             value, constants.ERROR_CORRECT_L)
+
+    @property
+    def label_orientation(self):
+        return self._label_orientation
+
+    @label_orientation.setter
+    def label_orientation(self, value):
+        self._label_orientation = value
 
     def generate(self):
         if self._label_content in (LabelContent.QRCODE_ONLY, LabelContent.TEXT_QRCODE):
