@@ -56,7 +56,7 @@ class SimpleLabel:
         self._height = height
         self.label_content = label_content
         self.label_orientation = label_orientation
-        self._label_type = label_type
+        self.label_type = label_type
         self._label_margin = label_margin
         self._fore_color = fore_color
         self.text = text
@@ -102,6 +102,14 @@ class SimpleLabel:
     @label_orientation.setter
     def label_orientation(self, value):
         self._label_orientation = value
+
+    @property
+    def label_type(self):
+        return self._label_type
+
+    @label_type.setter
+    def label_type(self, value):
+        self._label_type = value
 
     def generate(self):
         if self._label_content in (LabelContent.QRCODE_ONLY, LabelContent.TEXT_QRCODE):
