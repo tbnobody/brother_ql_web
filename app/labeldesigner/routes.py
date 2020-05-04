@@ -52,7 +52,7 @@ def get_font_styles():
 
 @bp.route('/api/preview', methods=['POST', 'GET'])
 def get_preview_from_image():
-    label = genreate_label_from_request(request)
+    label = create_label_from_request(request)
     im = label.generate()
 
     return_format = request.values.get('return_format', 'png')
@@ -83,7 +83,7 @@ def print_text():
 
     try:
         context = get_label_context(request)
-        label = genreate_label_from_request(request)
+        label = create_label_from_request(request)
     except LookupError as e:
         return_dict['error'] = e.msg
         return return_dict
@@ -135,7 +135,7 @@ def print_text():
     return return_dict
 
 
-def genreate_label_from_request(request):
+def create_label_from_request(request):
     d = request.values
     context = {
         'label_size': d.get('label_size', '62'),
