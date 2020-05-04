@@ -44,7 +44,18 @@ Build the venv and install the requirements:
 
 ### Configuration file
 
-Copy `config.example.json` to `config.json` (e.g. `cp config.example.json config.json`) and adjust the values to match your needs.
+Create a directory called 'instance', a file called 'application.py' and adjust the values to match your needs.
+
+    mkdir /opt/brother_ql_web/instance
+    touch /opt/brother_ql_web/instance/application.py
+
+E.g.
+    """
+    User specific application settings
+    """
+    import logging
+    PRINTER_MODEL = 'QL-820NWB'
+    PRINTER_PRINTER = 'tcp://192.168.1.33:9100'
 
 ### Startup
 
@@ -62,8 +73,7 @@ Copy service file, reload system, enable and start the service
 ### Usage
 
 Once it's running, access the web interface by opening the page with your browser.
-If you run it on your local machine, go to <http://localhost:8013> (You can change
-the default port 8013 using the --port argument).
+If you run it on your local machine, go to <http://localhost:8013>.
 You will then be forwarded by default to the interactive web gui located at `/labeldesigner`.
 
 All in all, the web server offers:
