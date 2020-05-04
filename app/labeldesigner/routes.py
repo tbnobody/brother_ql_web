@@ -5,7 +5,7 @@ from flask import current_app, render_template, request, make_response
 from brother_ql.devicedependent import label_type_specs, label_sizes
 from brother_ql.devicedependent import ENDLESS_LABEL, DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL
 
-from app.labeldesigner import bp
+from . import bp
 from app.utils import convert_image_to_bw, pdffile_to_image, imgfile_to_image, image_to_png_bytes
 from app import FONTS
 

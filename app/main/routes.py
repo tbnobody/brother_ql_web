@@ -1,5 +1,5 @@
 from flask import redirect, url_for
-from app.main import bp
+from . import bp
 
 @bp.route('/')
 def index():
