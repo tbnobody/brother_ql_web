@@ -75,6 +75,8 @@ class PrinterQueue:
                 cut=queue_entry['cut'],
                 rotate=rotate)
 
+        self._printQueue.clear()
+
         be = self._backend_class(self._device_specifier)
         be.write(qlr.data)
         be.dispose()
