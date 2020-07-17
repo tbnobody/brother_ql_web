@@ -7,8 +7,10 @@ from pdf2image import convert_from_bytes
 
 def convert_image_to_bw(image, threshold):
     fn = lambda x : 255 if x > threshold else 0
-    return image.convert('L').point(fn, mode='1') # convert to greyscale
+    return image.convert('L').point(fn, mode='1') # convert to black and white
 
+def convert_image_to_grayscale(image):
+    return image.convert('L') # convert to greyscale
 
 def imgfile_to_image(file):
     s = BytesIO()

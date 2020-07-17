@@ -23,7 +23,7 @@ from brother_ql import BrotherQLRaster, create_label
 from brother_ql.backends import backend_factory, guess_backend
 
 from . import fonts
-from app.utils import convert_image_to_bw, pdffile_to_image, imgfile_to_image, image_to_png_bytes
+from app.utils import convert_image_to_grayscale, pdffile_to_image, imgfile_to_image, image_to_png_bytes
 
 app = Flask(__name__)
 
@@ -119,10 +119,10 @@ def get_label_context(request):
             name, ext = os.path.splitext(image.filename)
             if ext.lower() in ('.png', '.jpg', '.jpeg'):
                 image = imgfile_to_image(image)
-                return convert_image_to_bw(image, 200)
+                return convert_image_to_grayscale(image)
             elif ext.lower() in ('.pdf'):
                 image = pdffile_to_image(image, DEFAULT_DPI)
-                return convert_image_to_bw(image, 200)
+                return convert_image_to_grayscale(image)
             else:
                 return None
         except AttributeError:
@@ -224,10 +224,18 @@ def assemble_label_im(text, image, include_text, **kwargs):
     width, height = kwargs['width'], kwargs['height']
     if kwargs['orientation'] == 'standard':
         if label_type in (ENDLESS_LABEL,):
-            height = image_height + textsize[1] + kwargs['margin_top'] + kwargs['margin_bottom']
+            if kwargs['print_type'] == 'image':
+                scale = width/image_width
+            else:
+                scale = 1
+            height = int(image_height*scale) + textsize[1] + kwargs['margin_top'] + kwargs['margin_bottom']
     elif kwargs['orientation'] == 'rotated':
         if label_type in (ENDLESS_LABEL,):
-            width = image_width + textsize[0] + kwargs['margin_left'] + kwargs['margin_right']
+            if kwargs['print_type'] == 'image':
+                scale = height/image_height
+            else:
+                scale = 1
+            width = int(image_width*scale) + textsize[0] + kwargs['margin_left'] + kwargs['margin_right']
 
     if kwargs['orientation'] == 'standard':
         if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL):
@@ -257,8 +265,10 @@ def assemble_label_im(text, image, include_text, **kwargs):
 
     im = Image.new('RGB', (width, height), 'white')
 
-    if image is not None:
+    if kwargs['print_type'] == 'qrcode' or kwargs['print_type'] == 'qrcode_text':
         im.paste(image, image_offset)
+    elif kwargs['print_type'] == 'image':
+        im.paste(image.resize((width,height)))
 
     if include_text:
         draw = ImageDraw.Draw(im)
@@ -345,6 +355,7 @@ def print_text():
             im,
             context['label_size'],
             red=red,
+            dither=True,
             threshold=context['threshold'],
             cut=cut,
             rotate=rotate)
