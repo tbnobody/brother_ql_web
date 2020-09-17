@@ -19,7 +19,9 @@
             {"family": "DejaVu Serif",    "style": "Book"}
         ],
         "DEFAULT_QR_SIZE": 10,
-        "DEFAULT_LINE_SPACING": 100
+        "DEFAULT_LINE_SPACING": 100,
+        "DEFAULT_IMAGE_MODE": "grayscale",
+        "DEFAULT_BW_THRESHOLD": 70
     },
     "WEBSITE": {
         "HTML_TITLE": "Label Designer",

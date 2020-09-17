@@ -1,5 +1,5 @@
 brother_ql
-Flask
+flask
 flask_bootstrap4
 qrcode
 pdf2image
