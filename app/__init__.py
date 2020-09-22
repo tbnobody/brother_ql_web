@@ -98,7 +98,7 @@ def get_label_context(request):
         'print_count':       int(d.get('print_count', 1)),
         'print_color':       d.get('print_color', 'black'),
         'line_spacing':      int(d.get('line_spacing', 100)),
-        'cut_once':          int(d.get('cut_once', 0)),
+        'cut_mode':          d.get('cut_mode', 'cut'),
     }
     context['margin_top']    = int(context['font_size']*context['margin_top'])
     context['margin_bottom'] = int(context['font_size']*context['margin_bottom'])
@@ -106,8 +106,6 @@ def get_label_context(request):
     context['margin_right']  = int(context['font_size']*context['margin_right'])
 
     context['fill_color']    = (255, 0, 0) if 'red' in context['label_size'] and context['print_color'] == 'red' else (0, 0, 0)
-
-    context['cut_once'] = True if context['cut_once'] == 1 else False
 
     qrSwitch = {
         'L': qrcode.constants.ERROR_CORRECT_L,
@@ -359,9 +357,9 @@ def print_text():
     threshold = (context['image_bw_threshold']/255)*100
 
     for cnt in range(1, context['print_count']+1):
-        if context['cut_once'] == False:
+        if context['cut_mode'] == 'cut':
             cut = True
-        elif context['cut_once'] == True and cnt == context['print_count']:
+        elif context['cut_mode'] == 'cut_once' and cnt == context['print_count']:
             cut = True
         else:
             cut = False

@@ -248,7 +248,8 @@
                     <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <div class="dropdown-menu" aria-labelledby="dropdownPrintButton">
-                    <a class="dropdown-item" href="#" onClick="print(true)">Cut only once</a>
+                    <a class="dropdown-item" href="#" onClick="print('cut_once')">Cut only once</a>
+                    <a class="dropdown-item" href="#" onClick="print('no_cut')">Print, No cut</a>
                 </div>
             </div>
 
@@ -266,7 +267,7 @@
 {% endblock %}
 
 {% block javascript %}
-function formData(cut_once) {
+function formData(cut_mode) {
     var text = $('#labelText').val();
     if (text == '') text = ' ';
     return {
@@ -289,7 +290,7 @@ function formData(cut_once) {
         image_mode:         $('input[name=imageMode]:checked').val(),
         print_color:        $('input[name=printColor]:checked').val(),
         line_spacing:       $('input[name=lineSpacing]:checked').val(),
-        cut_once:           cut_once ? 1 : 0,
+        cut_mode:           cut_mode,
     }
 }
 
@@ -383,7 +384,7 @@ function setStatus(data) {
     $('#dropdownPrintButton').prop('disabled', false);
 }
 
-function print(cut_once = false) {
+function print(cut_mode = 'cut') {
     $('#printButton').prop('disabled', true);
     $('#dropdownPrintButton').prop('disabled', true);
     $('#statusPanel').html('<div id="statusBox" class="alert alert-info" role="alert"><i class="fas fa-hourglass-half"></i><span>Processing print request...</span></div>');
@@ -397,7 +398,7 @@ function print(cut_once = false) {
     $.ajax({
         type:     'POST',
         dataType: 'json',
-        data:     formData(cut_once),
+        data:     formData(cut_mode),
         url:      '/api/print',
         success:  setStatus,
         error:    setStatus
