@@ -15,11 +15,12 @@ There's also a screenshot showing [how it looks on a smartphone](./screenshots/L
     * Change size of QR Code
 * Upload files to print
     * .pdf, .png and .jpg files
-    * automatically convertion to black/white image
+    * automatically convertion to black/white or grayscale image
 * Change print color for black/white/red labels
 * Print lables multiple times
     * Cut every label
     * Cut only after the last label
+    * Print without cutting
 * Migrated GUI to Bootstrap 4
 * Make preview for round labels.. round
 

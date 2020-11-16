@@ -229,20 +229,16 @@ def assemble_label_im(text, image, include_text, **kwargs):
         textsize = (0, 0)
 
     width, height = kwargs['width'], kwargs['height']
-    if kwargs['orientation'] == 'standard':
-        if label_type in (ENDLESS_LABEL,):
-            if kwargs['print_type'] == 'image':
-                scale = width/image_width
-            else:
-                scale = 1
-            height = int(image_height*scale) + textsize[1] + kwargs['margin_top'] + kwargs['margin_bottom']
-    elif kwargs['orientation'] == 'rotated':
-        if label_type in (ENDLESS_LABEL,):
-            if kwargs['print_type'] == 'image':
-                scale = height/image_height
-            else:
-                scale = 1
-            width = int(image_width*scale) + textsize[0] + kwargs['margin_left'] + kwargs['margin_right']
+    if label_type in (ENDLESS_LABEL,):
+        if kwargs['print_type'] == 'image':
+            if kwargs['orientation'] == 'standard':
+                scale = (width - kwargs['margin_left'] - kwargs['margin_right'])/image_width
+                height = int(image_height*scale) + textsize[1] + kwargs['margin_top'] + kwargs['margin_bottom']
+            elif kwargs['orientation'] == 'rotated':
+                scale = (height - kwargs['margin_top'] - kwargs['margin_bottom'])/image_height
+                width = int(image_width*scale) + textsize[0] + kwargs['margin_left'] + kwargs['margin_right']          
+        else:
+            scale = 1
 
     if kwargs['orientation'] == 'standard':
         if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL):

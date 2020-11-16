@@ -391,6 +391,7 @@ function print(cut_mode = 'cut') {
 
     if($('input[name=printType]:checked').val() == 'image') {
         dropZoneMode = 'print';
+        dropCutMode = cut_mode;
         imageDropZone.processQueue();
         return;
     }
@@ -410,6 +411,7 @@ preview()
 
 
 var imageDropZone;
+var imageCutMode;
 Dropzone.options.myAwesomeDropzone = {
     url: function() {
         if (dropZoneMode == 'preview') {
@@ -435,7 +437,7 @@ Dropzone.options.myAwesomeDropzone = {
 
     sending: function(file, xhr, data) {
         // append all parameters to the request
-        fd = formData(false);
+        fd = formData(dropCutMode);
 
         $.each(fd, function(key, value){
             data.append(key, value);
