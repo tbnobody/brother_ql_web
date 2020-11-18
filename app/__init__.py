@@ -233,12 +233,18 @@ def assemble_label_im(text, image, include_text, **kwargs):
         if kwargs['print_type'] == 'image':
             if kwargs['orientation'] == 'standard':
                 scale = (width - kwargs['margin_left'] - kwargs['margin_right'])/image_width
-                height = int(image_height*scale) + textsize[1] + kwargs['margin_top'] + kwargs['margin_bottom']
+                image_width = width - kwargs['margin_left'] - kwargs['margin_right']
+                image_height = int(image_height*scale)
+                height = image_height + kwargs['margin_top'] + kwargs['margin_bottom']
             elif kwargs['orientation'] == 'rotated':
                 scale = (height - kwargs['margin_top'] - kwargs['margin_bottom'])/image_height
-                width = int(image_width*scale) + textsize[0] + kwargs['margin_left'] + kwargs['margin_right']          
-        else:
-            scale = 1
+                image_height = height - kwargs['margin_top'] - kwargs['margin_bottom']
+                image_width = int(image_width*scale)
+                width = image_width + kwargs['margin_left'] + kwargs['margin_right']
+        elif kwargs['orientation'] == 'standard':
+            height = image_height + textsize[1] + kwargs['margin_top'] + kwargs['margin_bottom']
+        elif kwargs['orientation'] == 'rotated':
+            width = image_width + textsize[0] + kwargs['margin_left'] + kwargs['margin_right']
 
     if kwargs['orientation'] == 'standard':
         if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL):
@@ -246,21 +252,28 @@ def assemble_label_im(text, image, include_text, **kwargs):
             vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
         else:
             vertical_offset = kwargs['margin_top']
-
         vertical_offset += image_height
-        horizontal_offset = max((width - textsize[0])//2, 0)
-        horizontal_offset_image = (width - image_width)//2
         vertical_offset_image = kwargs['margin_top']
 
+        if kwargs['align'] == 'left':
+            horizontal_offset = kwargs['margin_left']
+        elif kwargs['align'] == 'right':
+            horizontal_offset = (width - textsize[0])-kwargs['margin_right']
+        else:
+            horizontal_offset = max((width - textsize[0])//2, 0)
+
+        horizontal_offset_image = (width - image_width)//2
+
     elif kwargs['orientation'] == 'rotated':
-        vertical_offset  = (height - textsize[1])//2
-        vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
         if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL):
             horizontal_offset = max((width - image_width - textsize[0])//2, 0)
         else:
             horizontal_offset = kwargs['margin_left']
         horizontal_offset += image_width
         horizontal_offset_image = kwargs['margin_left']
+
+        vertical_offset  = (height - textsize[1])//2
+        vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
         vertical_offset_image = (height - image_height)//2
 
     offset = horizontal_offset, vertical_offset
@@ -271,7 +284,7 @@ def assemble_label_im(text, image, include_text, **kwargs):
     if kwargs['print_type'] == 'qrcode' or kwargs['print_type'] == 'qrcode_text':
         im.paste(image, image_offset)
     elif kwargs['print_type'] == 'image':
-        im.paste(image.resize((width,height)))
+        im.paste(image.resize((image_width,image_height)), image_offset)
 
     if include_text:
         draw = ImageDraw.Draw(im)
