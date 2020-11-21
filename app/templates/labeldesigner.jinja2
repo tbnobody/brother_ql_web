@@ -129,6 +129,33 @@
                 </div>
 
                 <div class="card">
+                    <div class="card-header" id="heading5">
+                        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse5" aria-expanded="true" aria-controls="collapse5">
+                            <span class="fas fa-image" aria-hidden="true"></span> Image Settings
+                        </button>
+                    </div>
+                    <div id="collapse5" class="collapse" aria-labelledby="heading5" data-parent="#accordion">
+                        <div class="card-body">
+                            <label for="imageMode" class="control-label input-group" style="margin-top: 10px; margin-bottom: 0">Image mode:</label>
+                            <div class="btn-group btn-group-toggle btn-block" data-toggle="buttons">
+                                <label class="btn btn-secondary {% if default_image_mode == 'black_and_white' %}active{% endif %}" id="image_mode_bw">
+                                    <input type="radio" name="imageMode" onchange="preview()" value="black_and_white" aria-label="Black & White" {% if default_image_mode == 'black_and_white' %}checked{% endif %}>
+                                    <span class="fas fa-ruler-horizontal" aria-hidden="true"> Black & White
+                                </label>
+                                <label class="btn btn-secondary {% if default_image_mode == 'grayscale' %}active{% endif %}" id="image_mode_grayscale">
+                                    <input type="radio" name="imageMode" onchange="preview()" value="grayscale" aria-label="Grayscale" {% if default_image_mode == 'grayscale' %}checked{% endif %}>
+                                    <span class="fas fa-ruler-vertical" aria-hidden="true"> Grayscale
+                                </label>
+                            </div>
+
+                            <label for="imageBwThreshold" style="margin-top: 10px; margin-bottom: 0">Black & White threshold:</label>
+                            <input id="imageBwThreshold" class="form-control" type="number" min="1" max="255" value="{{default_bw_threshold}}" onChange="preview()">
+                        </div>
+                        <!-- class="card-body" -->
+                    </div>
+                </div>
+
+                <div class="card">
                     <div class="card-header" id="heading3">
                         <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse3" aria-expanded="true" aria-controls="collapse3">
                             <span class="fas fa-cog" aria-hidden="true"></span> Detailed Settings
@@ -221,7 +248,8 @@
                     <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <div class="dropdown-menu" aria-labelledby="dropdownPrintButton">
-                    <a class="dropdown-item" href="#" onClick="print(true)">Cut only once</a>
+                    <a class="dropdown-item" href="#" onClick="print('cut_once')">Cut only once</a>
+                    <a class="dropdown-item" href="#" onClick="print('no_cut')">Print, No cut</a>
                 </div>
             </div>
 
@@ -239,7 +267,7 @@
 {% endblock %}
 
 {% block javascript %}
-function formData(cut_once) {
+function formData(cut_mode) {
     var text = $('#labelText').val();
     if (text == '') text = ' ';
     return {
@@ -256,11 +284,13 @@ function formData(cut_once) {
         margin_right:  $('#marginRight').val(),
         print_type:    $('input[name=printType]:checked').val(),
         qrcode_size:   $('#qrCodeSize').val(),
-        qrcode_correction: $('#qrCodeCorrection option:selected').val(),
-        print_count:       $('#printCount').val(),
-        print_color:       $('input[name=printColor]:checked').val(),
-        line_spacing:      $('input[name=lineSpacing]:checked').val(),
-        cut_once:          cut_once ? 1 : 0,
+        qrcode_correction:  $('#qrCodeCorrection option:selected').val(),
+        print_count:        $('#printCount').val(),
+        image_bw_threshold: $('#imageBwThreshold').val(),
+        image_mode:         $('input[name=imageMode]:checked').val(),
+        print_color:        $('input[name=printColor]:checked').val(),
+        line_spacing:       $('input[name=lineSpacing]:checked').val(),
+        cut_mode:           cut_mode,
     }
 }
 
@@ -354,13 +384,14 @@ function setStatus(data) {
     $('#dropdownPrintButton').prop('disabled', false);
 }
 
-function print(cut_once = false) {
+function print(cut_mode = 'cut') {
     $('#printButton').prop('disabled', true);
     $('#dropdownPrintButton').prop('disabled', true);
     $('#statusPanel').html('<div id="statusBox" class="alert alert-info" role="alert"><i class="fas fa-hourglass-half"></i><span>Processing print request...</span></div>');
 
     if($('input[name=printType]:checked').val() == 'image') {
         dropZoneMode = 'print';
+        dropCutMode = cut_mode;
         imageDropZone.processQueue();
         return;
     }
@@ -368,7 +399,7 @@ function print(cut_once = false) {
     $.ajax({
         type:     'POST',
         dataType: 'json',
-        data:     formData(cut_once),
+        data:     formData(cut_mode),
         url:      '/api/print',
         success:  setStatus,
         error:    setStatus
@@ -380,6 +411,7 @@ preview()
 
 
 var imageDropZone;
+var dropCutMode;
 Dropzone.options.myAwesomeDropzone = {
     url: function() {
         if (dropZoneMode == 'preview') {
@@ -405,7 +437,7 @@ Dropzone.options.myAwesomeDropzone = {
 
     sending: function(file, xhr, data) {
         // append all parameters to the request
-        fd = formData(false);
+        fd = formData(dropCutMode);
 
         $.each(fd, function(key, value){
             data.append(key, value);

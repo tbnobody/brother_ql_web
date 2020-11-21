@@ -23,7 +23,7 @@ from brother_ql import BrotherQLRaster, create_label
 from brother_ql.backends import backend_factory, guess_backend
 
 from . import fonts
-from app.utils import convert_image_to_bw, pdffile_to_image, imgfile_to_image, image_to_png_bytes
+from app.utils import convert_image_to_grayscale, convert_image_to_bw, pdffile_to_image, imgfile_to_image, image_to_png_bytes
 
 app = Flask(__name__)
 
@@ -63,6 +63,8 @@ def labeldesigner():
         label = CONFIG['LABEL'],
         default_orientation = CONFIG['LABEL']['DEFAULT_ORIENTATION'],
         default_qr_size = CONFIG['LABEL']['DEFAULT_QR_SIZE'],
+        default_image_mode = CONFIG['LABEL']['DEFAULT_IMAGE_MODE'],
+        default_bw_threshold = CONFIG['LABEL']['DEFAULT_BW_THRESHOLD'],
         line_spacings = LINE_SPACINGS,
         default_line_spacing = CONFIG['LABEL']['DEFAULT_LINE_SPACING'],
         default_dpi = DEFAULT_DPI
@@ -82,7 +84,6 @@ def get_label_context(request):
         'label_size':    d.get('label_size', "62"),
         'kind':          label_type_specs[d.get('label_size', "62")]['kind'],
         'margin':    int(d.get('margin', 10)),
-        'threshold': int(d.get('threshold', 70)),
         'align':         d.get('align', 'center'),
         'orientation':   d.get('orientation', 'standard'),
         'margin_top':    float(d.get('margin_top',    24))/100.,
@@ -92,10 +93,12 @@ def get_label_context(request):
         'print_type':    d.get('print_type', 'text'),
         'qrcode_size':   int(d.get('qrcode_size', 10)),
         'qrcode_correction': d.get('qrcode_correction', 'L'),
+        'image_mode': d.get('image_mode', "grayscale"),
+        'image_bw_threshold': int(d.get('image_bw_threshold', 70)),
         'print_count':       int(d.get('print_count', 1)),
         'print_color':       d.get('print_color', 'black'),
         'line_spacing':      int(d.get('line_spacing', 100)),
-        'cut_once':          int(d.get('cut_once', 0)),
+        'cut_mode':          d.get('cut_mode', 'cut'),
     }
     context['margin_top']    = int(context['font_size']*context['margin_top'])
     context['margin_bottom'] = int(context['font_size']*context['margin_bottom'])
@@ -103,8 +106,6 @@ def get_label_context(request):
     context['margin_right']  = int(context['font_size']*context['margin_right'])
 
     context['fill_color']    = (255, 0, 0) if 'red' in context['label_size'] and context['print_color'] == 'red' else (0, 0, 0)
-
-    context['cut_once'] = True if context['cut_once'] == 1 else False
 
     qrSwitch = {
         'L': qrcode.constants.ERROR_CORRECT_L,
@@ -119,10 +120,16 @@ def get_label_context(request):
             name, ext = os.path.splitext(image.filename)
             if ext.lower() in ('.png', '.jpg', '.jpeg'):
                 image = imgfile_to_image(image)
-                return convert_image_to_bw(image, 200)
+                if context['image_mode'] == 'grayscale':
+                    return convert_image_to_grayscale(image)
+                else:
+                    return convert_image_to_bw(image, context['image_bw_threshold'])
             elif ext.lower() in ('.pdf'):
                 image = pdffile_to_image(image, DEFAULT_DPI)
-                return convert_image_to_bw(image, 200)
+                if context['image_mode'] == 'grayscale':
+                    return convert_image_to_grayscale(image)
+                else:
+                    return convert_image_to_bw(image, context['image_bw_threshold'])
             else:
                 return None
         except AttributeError:
@@ -222,11 +229,21 @@ def assemble_label_im(text, image, include_text, **kwargs):
         textsize = (0, 0)
 
     width, height = kwargs['width'], kwargs['height']
-    if kwargs['orientation'] == 'standard':
-        if label_type in (ENDLESS_LABEL,):
+    if label_type in (ENDLESS_LABEL,):
+        if kwargs['print_type'] == 'image':
+            if kwargs['orientation'] == 'standard':
+                scale = (width - kwargs['margin_left'] - kwargs['margin_right'])/image_width
+                image_width = width - kwargs['margin_left'] - kwargs['margin_right']
+                image_height = int(image_height*scale)
+                height = image_height + kwargs['margin_top'] + kwargs['margin_bottom']
+            elif kwargs['orientation'] == 'rotated':
+                scale = (height - kwargs['margin_top'] - kwargs['margin_bottom'])/image_height
+                image_height = height - kwargs['margin_top'] - kwargs['margin_bottom']
+                image_width = int(image_width*scale)
+                width = image_width + kwargs['margin_left'] + kwargs['margin_right']
+        elif kwargs['orientation'] == 'standard':
             height = image_height + textsize[1] + kwargs['margin_top'] + kwargs['margin_bottom']
-    elif kwargs['orientation'] == 'rotated':
-        if label_type in (ENDLESS_LABEL,):
+        elif kwargs['orientation'] == 'rotated':
             width = image_width + textsize[0] + kwargs['margin_left'] + kwargs['margin_right']
 
     if kwargs['orientation'] == 'standard':
@@ -235,21 +252,28 @@ def assemble_label_im(text, image, include_text, **kwargs):
             vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
         else:
             vertical_offset = kwargs['margin_top']
-
         vertical_offset += image_height
-        horizontal_offset = max((width - textsize[0])//2, 0)
-        horizontal_offset_image = (width - image_width)//2
         vertical_offset_image = kwargs['margin_top']
 
+        if kwargs['align'] == 'left':
+            horizontal_offset = kwargs['margin_left']
+        elif kwargs['align'] == 'right':
+            horizontal_offset = (width - textsize[0])-kwargs['margin_right']
+        else:
+            horizontal_offset = max((width - textsize[0])//2, 0)
+
+        horizontal_offset_image = (width - image_width)//2
+
     elif kwargs['orientation'] == 'rotated':
-        vertical_offset  = (height - textsize[1])//2
-        vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
         if label_type in (DIE_CUT_LABEL, ROUND_DIE_CUT_LABEL):
             horizontal_offset = max((width - image_width - textsize[0])//2, 0)
         else:
             horizontal_offset = kwargs['margin_left']
         horizontal_offset += image_width
         horizontal_offset_image = kwargs['margin_left']
+
+        vertical_offset  = (height - textsize[1])//2
+        vertical_offset += (kwargs['margin_top'] - kwargs['margin_bottom'])//2
         vertical_offset_image = (height - image_height)//2
 
     offset = horizontal_offset, vertical_offset
@@ -257,8 +281,10 @@ def assemble_label_im(text, image, include_text, **kwargs):
 
     im = Image.new('RGB', (width, height), 'white')
 
-    if image is not None:
+    if kwargs['print_type'] == 'qrcode' or kwargs['print_type'] == 'qrcode_text':
         im.paste(image, image_offset)
+    elif kwargs['print_type'] == 'image':
+        im.paste(image.resize((image_width,image_height)), image_offset)
 
     if include_text:
         draw = ImageDraw.Draw(im)
@@ -332,10 +358,17 @@ def print_text():
     if 'red' in context['label_size']:
         red = True
 
+    if context['image_mode'] == 'grayscale':
+        dither = True
+    else:
+        dither = False
+
+    threshold = (context['image_bw_threshold']/255)*100
+
     for cnt in range(1, context['print_count']+1):
-        if context['cut_once'] == False:
+        if context['cut_mode'] == 'cut':
             cut = True
-        elif context['cut_once'] == True and cnt == context['print_count']:
+        elif context['cut_mode'] == 'cut_once' and cnt == context['print_count']:
             cut = True
         else:
             cut = False
@@ -345,7 +378,8 @@ def print_text():
             im,
             context['label_size'],
             red=red,
-            threshold=context['threshold'],
+            dither=dither,
+            threshold=threshold,
             cut=cut,
             rotate=rotate)
 
@@ -378,6 +412,8 @@ def main():
                         help='Label size inserted in your printer. Defaults to 62.')
     parser.add_argument('--default-orientation', default=False, choices=('standard', 'rotated'),
                         help='Label orientation, defaults to "standard". To turn your text by 90°, state "rotated".')
+    parser.add_argument('--default-image-mode', default=False, choices=('black_and_white', 'grayscale'),
+                        help='Image mode, defaults to "grayscale". To print in black and white, state "black_and_white".')                    
     parser.add_argument('--model', default=False, choices=models,
                         help='The model of your printer (default: QL-500)')
     parser.add_argument('printer',  nargs='?', default=False,
@@ -410,6 +446,9 @@ def main():
 
     if args.default_orientation:
         CONFIG['LABEL']['DEFAULT_ORIENTATION'] = args.default_orientation
+
+    if args.default_image_mode:
+        CONFIG['LABEL']['DEFAULT_IMAGE_MODE'] = args.default_image_mode
 
     if args.font_folder:
         ADDITIONAL_FONT_FOLDER = args.font_folder
