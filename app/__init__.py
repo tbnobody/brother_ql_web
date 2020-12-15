@@ -166,7 +166,7 @@ def create_qr_code(text, size, correction, fill_color):
         box_size=size,
         border=0,
     )
-    qr.add_data(text)
+    qr.add_data(text.encode("utf-8-sig"))
     qr.make(fit=True)
     qr_img = qr.make_image(
         fill_color='red' if (255, 0, 0) == fill_color else 'black',
